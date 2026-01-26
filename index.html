@@ -12,24 +12,28 @@
       --border:#e2e8f0;
       --tile:#f8fafc;
       --tileHover:#eef2f7;
+
       --accent:#ef4444;
       --accentSoft:#fee2e2;
+
       --sel:#3b82f6;
       --selSoft:#dbeafe;
+
       --ok:#22c55e;
       --okSoft:#dcfce7;
+
       --bad:#ef4444;
       --badSoft:#fee2e2;
+
       --hint:#a855f7;
       --hintSoft:#f3e8ff;
     }
 
     *{ box-sizing:border-box; }
 
-    /* Prevent any horizontal overflow on mobile / larger text settings */
-    html, body { overflow-x: hidden; }
-    /* Prevent iOS from auto-scaling text in a way that breaks layouts */
-    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    /* Prevent horizontal overflow + iOS autosizing weirdness */
+    html, body { overflow-x:hidden; }
+    html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
 
     body{
       margin:0;
@@ -126,10 +130,17 @@
     .topline{
       display:flex;
       justify-content:space-between;
-      align-items:baseline;
+      align-items:center;
       gap:10px;
       flex-wrap:wrap;
       margin-bottom:10px;
+    }
+
+    .roundLeft{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
     }
 
     .roundLabel{
@@ -143,16 +154,48 @@
     .instruction{
       color:var(--muted);
       font-size:12px;
-      font-weight:800; /* bolder for accessibility */
+      font-weight:800;
+      text-align:right;
+      flex:1;
+      min-width:180px;
     }
+
+    /* Timer ring */
+    .timerWrap{
+      width:34px;
+      height:34px;
+      border-radius:999px;
+      display:grid;
+      place-items:center;
+    }
+    .timerSvg{
+      width:34px;
+      height:34px;
+      display:block;
+    }
+    .timerBg{
+      stroke: rgba(100,116,139,.25);
+      stroke-width:4.5;
+      fill:none;
+    }
+    .timerFg{
+      stroke: var(--sel);
+      stroke-width:4.5;
+      fill:none;
+      stroke-linecap:round;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      transition: stroke .15s ease;
+    }
+    .timerFg.warn{ stroke: var(--accent); }
+    .timerFg.ok{ stroke: var(--sel); }
 
     .grid{
       display:grid;
       gap:10px;
       width:100%;
     }
-    /* Critical: allow grid items to shrink instead of forcing overflow */
-    .grid > * { min-width: 0; }
+    .grid > * { min-width:0; }
 
     button.tile{
       appearance:none;
@@ -167,7 +210,7 @@
       text-transform: uppercase;
       letter-spacing:.5px;
       transition: transform .06s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
-      min-width:0; /* Critical */
+      min-width:0;
       overflow:hidden;
       text-overflow:ellipsis;
       white-space:nowrap;
@@ -273,28 +316,7 @@
       min-height:18px;
     }
 
-    .sharebox{
-      margin-top:10px;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      background:#fff;
-      display:none;
-    }
-    textarea{
-      width:100%;
-      min-height:82px;
-      resize:vertical;
-      background:#fff;
-      color:var(--ink);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:10px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size:12px;
-    }
-
-    /* ===== End Screen (Daily Complete) ===== */
+    /* End Screen (Daily Complete) */
     .endScreen{
       border:1px solid var(--border);
       border-radius:16px;
@@ -358,7 +380,7 @@
       color: var(--ink);
     }
 
-    /* ===== Modals ===== */
+    /* Modals */
     .overlay{
       position:fixed;
       inset:0;
@@ -510,7 +532,18 @@
       <!-- Game Screen -->
       <div class="game" id="gameScreen">
         <div class="topline">
-          <div class="roundLabel"><span id="roundTitle">Round 1</span></div>
+          <div class="roundLeft">
+            <div class="roundLabel"><span id="roundTitle">Round 1</span></div>
+
+            <!-- Timer Ring -->
+            <div class="timerWrap" aria-label="Round timer">
+              <svg class="timerSvg" viewBox="0 0 36 36" aria-hidden="true">
+                <circle class="timerBg" cx="18" cy="18" r="14"></circle>
+                <circle class="timerFg ok" id="timerFg" cx="18" cy="18" r="14"></circle>
+              </svg>
+            </div>
+          </div>
+
           <div class="instruction" id="instrText"><b>Find the odd word and lock it in.</b></div>
         </div>
 
@@ -530,7 +563,7 @@
         <div class="rule" id="ruleBox"></div>
       </div>
 
-      <!-- Daily Complete Screen (shows if you already played) -->
+      <!-- Daily Complete Screen -->
       <div class="endScreen" id="endScreen">
         <h2 class="endTitle">Thanks for playing!</h2>
         <p class="endSub">Come back tomorrow for a new puzzle.</p>
@@ -554,10 +587,6 @@
         <div class="btnRow">
           <button class="btn ghost" id="copyBtn">Copy Share</button>
         </div>
-      </div>
-
-      <div class="sharebox" id="shareBox">
-        <textarea id="shareText" readonly></textarea>
       </div>
     </div>
   </div>
@@ -608,17 +637,57 @@
 
 <script>
 (() => {
+  // Round timers (seconds): 10 / 20 / 30
+  const ROUND_SECONDS = [10, 20, 30];
+
+  // --- Daily puzzles (progressively harder, but fair) ---
+  // Round 1: very obvious category
+  // Round 2: pattern-based (not too brutal)
+  // Round 3: trickier but guessable with thought
   const DAYS = [
     {
       id: 1,
       rounds: [
-        { options:["MERCURY","VENUS","MARS","SIRIUS"], oddIndex:3, rule:"Planets vs. star." },
-        { options:["BANK","SEAL","PALM","CRANE","RING","MATCH","BARK","PILLOW"], oddIndex:7, rule:"One doesn’t behave like the others." },
-        { options:["KNEE","KNIFE","KNOT","KNEAD","GNOME","WRITE","WRONG","PSALM","PSYCHE","PNEUMONIA","PSALTERY","KNEW"], oddIndex:4, rule:"Silent clusters vs. silent g." }
+        {
+          // EASY: 4 words
+          options: ["SALMON", "TUNA", "TROUT", "ROBIN"],
+          oddIndex: 3,
+          rule: "Three are fish."
+        },
+        {
+          // MEDIUM: 8 words (same general idea, one breaks a pattern)
+          // 7 are palindromes? no; do: 7 are US states? too many. Do: 7 are anagrams of a month? Hmm.
+          // Use: 7 are words that contain only one vowel letter? (A/E/I/O/U) tricky.
+          // We'll do: 7 are words with exactly 5 letters; one is 6. But too easy.
+          // Better: 7 are nouns you can "wear", one you can't.
+          options: ["JACKET","GLOVES","SCARF","BELT","HAT","SOCKS","RING","LADDER"],
+          oddIndex: 7,
+          rule: "Seven are worn."
+        },
+        {
+          // HARDER: 12 words: silent-letter clusters pattern, but not impossible
+          options: ["KNIFE","KNEE","KNOT","KNEW","WRITE","WRONG","WRIST","PSALM","PSYCHIC","PNEUMONIA","GNOME","GNAW"],
+          // Odd one out: "WRONG" actually has silent W like others; all have silent first letter?
+          // Here 11 have silent first letter (k,w,p,g). "PSYCHIC" has silent P too. Hmm all have silent.
+          // Let's pick odd: "WRONG" & "WRITE" etc all silent W; G words silent G; K silent K; P silent P.
+          // Make odd one a non-silent starter: "KNEE" silent K yes. Need a word that looks similar but not silent:
+          // Use "WRECK" silent W (ok). Use "PSALTERY" silent P (ok). Let's add "KNACK" silent K.
+          // Add one that starts with same letters but pronounced: "GNAT" silent G, still.
+          // Let's instead make rule: most have silent first letter, except "PSYCHIC" actually P is silent, still.
+          // Ok new idea: 11 start with silent consonant + 'N' or 'R' cluster (kn-, wr-, gn-). Add ps- and pn- breaks. Too hard.
+          // Let's do: 11 have a silent first letter; 1 does not: "PSYCHIC" actually does; "PNEUMONIA" silent P.
+          // Use "KNEAD" silent K; all silent. Need one without silent: "ROBOT". That breaks theme though.
+          // We'll do a fairer medium-hard: 11 contain a silent letter; 1 does not but looks like it might: "PSALM" silent P, "ISLAND" silent S, etc.
+          // Let's change whole set: 11 have silent letters; one does not.
+          options: ["KNEE","KNIFE","WRIST","WRITE","PSALM","PNEUMONIA","GNOME","ISLAND","HONEST","WHISTLE","DOUBT","ROBIN"],
+          oddIndex: 11,
+          rule: "Most contain a silent letter."
+        }
       ]
     }
   ];
 
+  // --- Day selection ---
   const start = new Date(Date.UTC(2026, 0, 1));
   const now = new Date();
   const utcMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
@@ -626,6 +695,7 @@
   const dayPuzzle = DAYS[(dayNumber - 1) % DAYS.length];
   const storageKey = `ooo_daily_${dayNumber}`;
 
+  // --- Elements ---
   const dayText = document.getElementById("dayText");
   const progFill = document.getElementById("progFill");
   const roundTitle = document.getElementById("roundTitle");
@@ -637,8 +707,6 @@
   const ruleBox = document.getElementById("ruleBox");
   const msgEl = document.getElementById("msg");
   const copyBtn = document.getElementById("copyBtn");
-  const shareBox = document.getElementById("shareBox");
-  const shareText = document.getElementById("shareText");
 
   const gameScreen = document.getElementById("gameScreen");
   const endScreen = document.getElementById("endScreen");
@@ -647,7 +715,6 @@
   const endMiniShareText = document.getElementById("endMiniShareText");
   const endCopyBtn = document.getElementById("endCopyBtn");
 
-  // Completion modal elements
   const overlay = document.getElementById("overlay");
   const closeModal = document.getElementById("closeModal");
   const modalOk = document.getElementById("modalOk");
@@ -656,27 +723,39 @@
   const scoreNote = document.getElementById("scoreNote");
   const miniShareText = document.getElementById("miniShareText");
 
-  // Result modal elements
   const resultOverlay = document.getElementById("resultOverlay");
   const closeResult = document.getElementById("closeResult");
   const resultContinue = document.getElementById("resultContinue");
   const resultTitle = document.getElementById("resultTitle");
   const resultBadge = document.getElementById("resultBadge");
 
+  const timerFg = document.getElementById("timerFg");
+
   dayText.textContent = `Day #${dayNumber}`;
 
+  // --- State ---
+  // timerStartedAt: [ms or null] per round
   let state = JSON.parse(localStorage.getItem(storageKey)) || {
-    roundIndex:0,
-    selected:[null,null,null],
-    locked:[false,false,false],
-    results:[null,null,null],
-    shownCompleteModal:false
+    roundIndex: 0,
+    selected: [null,null,null],
+    locked: [false,false,false],
+    results: [null,null,null],
+    shownCompleteModal: false,
+    timerStartedAt: [null,null,null]
   };
 
   function save(){ localStorage.setItem(storageKey, JSON.stringify(state)); }
 
+  // --- Helpers ---
   function colsFor(n){ return n <= 4 ? 2 : 4; }
   function emoji(r){ return r===true ? "🟩" : "🟥"; }
+  function score(){ return state.results.filter(v => v === true).length; }
+  function scoreFlavor(s){
+    return s === 3 ? "Perfect!" :
+           s === 2 ? "Nice work." :
+           s === 1 ? "You got one." :
+           "Tough one today.";
+  }
 
   function buildShare(){
     return `Odd One Out #${dayNumber}
@@ -685,17 +764,92 @@ ${emoji(state.results[1])} Round 2
 ${emoji(state.results[2])} Round 3`;
   }
 
-  function score(){
-    return state.results.filter(v => v === true).length;
+  // --- Timer ring logic ---
+  let tickHandle = null;
+
+  function ringSetup() {
+    // 2πr for r=14
+    const C = 2 * Math.PI * 14;
+    timerFg.style.strokeDasharray = `${C}`;
+    timerFg.style.strokeDashoffset = `${0}`;
   }
 
-  function scoreFlavor(s){
-    return s === 3 ? "Perfect!" :
-           s === 2 ? "Nice work." :
-           s === 1 ? "You got one." :
-           "Tough one today.";
+  function stopTick(){
+    if(tickHandle){ clearInterval(tickHandle); tickHandle = null; }
   }
 
+  function roundTotalMs(ri){ return ROUND_SECONDS[ri] * 1000; }
+
+  function getRemainingMs(ri){
+    const startAt = state.timerStartedAt[ri];
+    const total = roundTotalMs(ri);
+    if(!startAt) return total;
+    const elapsed = Date.now() - startAt;
+    return Math.max(0, total - elapsed);
+  }
+
+  function setRingFromRemaining(ri){
+    const total = roundTotalMs(ri);
+    const rem = getRemainingMs(ri);
+    const frac = total === 0 ? 0 : (rem / total);
+
+    const C = 2 * Math.PI * 14;
+    timerFg.style.strokeDasharray = `${C}`;
+    timerFg.style.strokeDashoffset = `${C * (1 - frac)}`;
+
+    // Color shifts near the end
+    if(frac <= 0.25) {
+      timerFg.classList.remove("ok");
+      timerFg.classList.add("warn");
+    } else {
+      timerFg.classList.remove("warn");
+      timerFg.classList.add("ok");
+    }
+  }
+
+  function ensureTimerRunning(){
+    const ri = state.roundIndex;
+    if(state.locked[ri]) { stopTick(); return; }
+
+    // Start timer at first render of an unlocked round
+    if(!state.timerStartedAt[ri]) {
+      state.timerStartedAt[ri] = Date.now();
+      save();
+    }
+
+    stopTick();
+    tickHandle = setInterval(() => {
+      if(resultOverlay.classList.contains("show") || overlay.classList.contains("show")) {
+        // Don’t tick/auto-submit while a modal is up
+        return;
+      }
+      const rem = getRemainingMs(ri);
+      setRingFromRemaining(ri);
+      if(rem <= 0){
+        stopTick();
+        timeUpAutoLock();
+      }
+    }, 100);
+  }
+
+  function timeUpAutoLock(){
+    // If time runs out: lock round as incorrect (even if they selected something)
+    const ri = state.roundIndex;
+    if(state.locked[ri]) return;
+
+    state.results[ri] = false;
+    state.locked[ri] = true;
+    save();
+    render();
+
+    // Show popup
+    resultTitle.textContent = `Round ${ri + 1}`;
+    resultBadge.className = "resultBadge bad";
+    resultBadge.textContent = "⏱️ Time’s up";
+    resultOverlay.classList.add("show");
+  }
+
+  // --- Modals ---
   function showCompletionModal(){
     const s = score();
     scorePill.textContent = `Score: ${s}/3`;
@@ -705,7 +859,6 @@ ${emoji(state.results[2])} Round 3`;
     state.shownCompleteModal = true;
     save();
   }
-
   function hideCompletionModal(){ overlay.classList.remove("show"); }
 
   function showResultModal(isCorrect){
@@ -716,51 +869,53 @@ ${emoji(state.results[2])} Round 3`;
   }
   function hideResultModal(){ resultOverlay.classList.remove("show"); }
 
+  // --- Rendering ---
   function renderEndScreen(){
-    const s = score();
+    stopTick();
     gameScreen.style.display = "none";
     endScreen.style.display = "block";
 
+    const s = score();
     endScorePill.textContent = `Score: ${s}/3`;
     endScoreNote.textContent = scoreFlavor(s);
     endMiniShareText.textContent = buildShare();
 
-    // Footer still shows copy; keep message simple
-    msgEl.textContent = `You're done for today.`;
-    shareBox.style.display = "none";
+    msgEl.textContent = "You're done for today.";
+    progFill.style.width = "100%";
   }
 
   function renderGameScreen(){
-    const r = dayPuzzle.rounds[state.roundIndex];
+    const ri = state.roundIndex;
+    const r = dayPuzzle.rounds[ri];
     const n = r.options.length;
 
     gameScreen.style.display = "block";
     endScreen.style.display = "none";
 
-    roundTitle.textContent = `Round ${state.roundIndex + 1}`;
+    roundTitle.textContent = `Round ${ri + 1}`;
     instrText.innerHTML = `<b>Find the odd word and lock it in.</b>`;
-    progFill.style.width = `${(state.locked.filter(Boolean).length/3)*100}%`;
+    progFill.style.width = `${(state.locked.filter(Boolean).length / 3) * 100}%`;
 
-    // Desktop grid sizing (mobile override handled in CSS)
-    gridEl.style.gridTemplateColumns = `repeat(${colsFor(n)},1fr)`;
+    // Grid columns (mobile overrides in CSS)
+    gridEl.style.gridTemplateColumns = `repeat(${colsFor(n)}, 1fr)`;
     gridEl.innerHTML = "";
 
     r.options.forEach((w,i)=>{
-      const b=document.createElement("button");
-      b.className="tile";
-      b.textContent=w;
-      b.disabled = state.locked[state.roundIndex];
+      const b = document.createElement("button");
+      b.className = "tile";
+      b.textContent = w;
+      b.disabled = state.locked[ri];
 
-      if(!state.locked[state.roundIndex] && state.selected[state.roundIndex]===i) b.classList.add("selected");
+      if(!state.locked[ri] && state.selected[ri] === i) b.classList.add("selected");
 
-      if(state.locked[state.roundIndex]){
-        if(i===state.selected[state.roundIndex]) b.classList.add(i===r.oddIndex ? "correct" : "wrong");
-        if(state.selected[state.roundIndex]!==r.oddIndex && i===r.oddIndex) b.classList.add("correct");
+      if(state.locked[ri]){
+        if(i === state.selected[ri]) b.classList.add(i === r.oddIndex ? "correct" : "wrong");
+        if(state.selected[ri] !== r.oddIndex && i === r.oddIndex) b.classList.add("correct");
       }
 
-      b.onclick=()=>{
-        if(state.locked[state.roundIndex]) return;
-        state.selected[state.roundIndex]=i;
+      b.onclick = () => {
+        if(state.locked[ri]) return;
+        state.selected[ri] = i;
         save();
         render();
       };
@@ -768,52 +923,51 @@ ${emoji(state.results[2])} Round 3`;
       gridEl.appendChild(b);
     });
 
-    pickBadge.textContent = `${state.selected[state.roundIndex]==null?0:1}/1`;
-    lockBtn.disabled = state.locked[state.roundIndex] || state.selected[state.roundIndex]==null;
-    nextBtn.disabled = !state.locked[state.roundIndex] || state.roundIndex===2;
+    pickBadge.textContent = `${state.selected[ri] == null ? 0 : 1}/1`;
+    lockBtn.disabled = state.locked[ri] || state.selected[ri] == null;
+    nextBtn.disabled = !state.locked[ri] || ri === 2;
 
-    if(state.locked[state.roundIndex]){
-      ruleBox.style.display="block";
-      ruleBox.innerHTML=`<strong>Rule:</strong> ${r.rule}`;
+    if(state.locked[ri]){
+      ruleBox.style.display = "block";
+      ruleBox.innerHTML = `<strong>Rule:</strong> ${r.rule}`;
     } else {
-      ruleBox.style.display="none";
-      ruleBox.innerHTML="";
+      ruleBox.style.display = "none";
+      ruleBox.innerHTML = "";
     }
 
     msgEl.textContent = "Choose the odd one out.";
+
+    // Timer ring update
+    ringSetup();
+    setRingFromRemaining(ri);
+    ensureTimerRunning();
   }
 
   function render(){
-    // If completed, show the “Thanks for playing” screen instead of dead UI
     if(state.locked.every(Boolean)){
       renderEndScreen();
-      // still generate share content for copying
-      shareText.value = buildShare();
-      shareBox.style.display = "none";
-      // show completion modal once (optional)
       if(!state.shownCompleteModal) showCompletionModal();
       return;
     }
     renderGameScreen();
   }
 
-  lockBtn.onclick=()=>{
-    const r = dayPuzzle.rounds[state.roundIndex];
-    const s = state.selected[state.roundIndex];
+  // --- Buttons ---
+  lockBtn.onclick = () => {
+    const ri = state.roundIndex;
+    const r = dayPuzzle.rounds[ri];
+    const s = state.selected[ri];
     if(s == null) return;
 
     const correct = (s === r.oddIndex);
-    state.results[state.roundIndex] = correct;
-    state.locked[state.roundIndex] = true;
-
+    state.results[ri] = correct;
+    state.locked[ri] = true;
     save();
     render();
-
-    // Popup after each round lock-in
     showResultModal(correct);
   };
 
-  nextBtn.onclick=()=>{
+  nextBtn.onclick = () => {
     if(state.roundIndex < 2){
       state.roundIndex++;
       save();
@@ -830,7 +984,6 @@ ${emoji(state.results[2])} Round 3`;
       msgEl.textContent = "Clipboard blocked—copy manually.";
     }
   }
-
   copyBtn.onclick = doCopy;
   endCopyBtn.onclick = doCopy;
 
@@ -838,21 +991,16 @@ ${emoji(state.results[2])} Round 3`;
   closeModal.onclick = hideCompletionModal;
   modalOk.onclick = hideCompletionModal;
   overlay.addEventListener("click", (e) => { if(e.target === overlay) hideCompletionModal(); });
-
   modalCopy.onclick = async () => {
     const txt = buildShare();
-    try{
-      await navigator.clipboard.writeText(txt);
-      scoreNote.textContent = "Copied!";
-    } catch {
-      scoreNote.textContent = "Copy manually below.";
-    }
+    try{ await navigator.clipboard.writeText(txt); scoreNote.textContent = "Copied!"; }
+    catch { scoreNote.textContent = "Copy manually below."; }
   };
 
   // Result modal actions
-  closeResult.onclick = hideResultModal;
-  resultContinue.onclick = hideResultModal;
-  resultOverlay.addEventListener("click", (e) => { if(e.target === resultOverlay) hideResultModal(); });
+  closeResult.onclick = () => { hideResultModal(); render(); };
+  resultContinue.onclick = () => { hideResultModal(); render(); };
+  resultOverlay.addEventListener("click", (e) => { if(e.target === resultOverlay) { hideResultModal(); render(); } });
 
   // ESC closes any open modal
   window.addEventListener("keydown", (e) => {
