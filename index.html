@@ -279,7 +279,7 @@
       font-size:12px;
     }
 
-    /* ===== Completion Modal ===== */
+    /* ===== Completion Modal + Result Modal ===== */
     .overlay{
       position:fixed;
       inset:0;
@@ -375,38 +375,69 @@
       font-size:12px;
       color: var(--ink);
     }
+
+    /* Result popup tweaks */
+    .modal.small{
+      width:min(420px, 96vw);
+    }
+    .resultBadge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#fff;
+      font-weight:900;
+      margin-top:10px;
+    }
+    .resultBadge.good{
+      border-color: rgba(34,197,94,.45);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.12);
+    }
+    .resultBadge.bad{
+      border-color: rgba(239,68,68,.45);
+      box-shadow: 0 0 0 3px rgba(239,68,68,.12);
+    }
+
+    /* Mobile sizing */
     @media (max-width: 480px) {
-  .wrap {
-    width: 100vw;
-    padding: 6px;
-  }
+      .wrap {
+        width: 100vw;
+        padding: 6px;
+      }
 
-  .panel {
-    padding: 10px;
-    border-radius: 14px;
-  }
+      .panel {
+        padding: 10px;
+        border-radius: 14px;
+      }
 
-  .game {
-    padding: 8px;
-  }
+      .game {
+        padding: 8px;
+      }
 
-  button.tile {
-    padding: 10px 6px;
-    font-size: 13px;
-  }
+      /* Fix tiny overhang/overflow on mobile grids */
+      .grid{
+        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+      }
 
-  .title {
-    font-size: 16px;
-  }
+      button.tile {
+        padding: 10px 6px;
+        font-size: 13px;
+      }
 
-  .roundLabel {
-    font-size: 13px;
-  }
+      .title {
+        font-size: 16px;
+      }
 
-  .instruction {
-    font-size: 11px;
-  }
-}
+      .roundLabel {
+        font-size: 13px;
+      }
+
+      .instruction {
+        font-size: 11px;
+      }
+    }
   </style>
 </head>
 
@@ -455,6 +486,23 @@
 
       <div class="sharebox" id="shareBox">
         <textarea id="shareText" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Round Result Popup -->
+  <div class="overlay" id="resultOverlay" role="dialog" aria-modal="true" aria-label="Round result">
+    <div class="modal small">
+      <div class="modalTop">
+        <div>
+          <h2 class="modalTitle" id="resultTitle">Result</h2>
+          <div class="resultBadge" id="resultBadge">—</div>
+        </div>
+        <button class="xbtn" id="closeResult" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn primary" id="resultContinue">Continue</button>
       </div>
     </div>
   </div>
@@ -521,7 +569,7 @@
   const shareBox = document.getElementById("shareBox");
   const shareText = document.getElementById("shareText");
 
-  // Modal elements
+  // Completion modal elements
   const overlay = document.getElementById("overlay");
   const closeModal = document.getElementById("closeModal");
   const modalOk = document.getElementById("modalOk");
@@ -529,6 +577,13 @@
   const scorePill = document.getElementById("scorePill");
   const scoreNote = document.getElementById("scoreNote");
   const miniShareText = document.getElementById("miniShareText");
+
+  // Result modal elements
+  const resultOverlay = document.getElementById("resultOverlay");
+  const closeResult = document.getElementById("closeResult");
+  const resultContinue = document.getElementById("resultContinue");
+  const resultTitle = document.getElementById("resultTitle");
+  const resultBadge = document.getElementById("resultBadge");
 
   dayText.textContent = `Day #${dayNumber}`;
 
@@ -557,7 +612,6 @@ ${emoji(state.results[2])} Round 3`;
     const score = state.results.filter(v => v === true).length;
     scorePill.textContent = `Score: ${score}/3`;
 
-    // small flavor note
     scoreNote.textContent =
       score === 3 ? "Perfect!" :
       score === 2 ? "Nice work." :
@@ -565,14 +619,24 @@ ${emoji(state.results[2])} Round 3`;
       "Tough one today.";
 
     miniShareText.textContent = buildShare();
-
     overlay.classList.add("show");
     state.shownCompleteModal = true;
     save();
   }
 
-  function hideModal(){
+  function hideCompletionModal(){
     overlay.classList.remove("show");
+  }
+
+  function showResultModal(isCorrect){
+    resultTitle.textContent = `Round ${state.roundIndex + 1}`;
+    resultBadge.className = "resultBadge " + (isCorrect ? "good" : "bad");
+    resultBadge.textContent = isCorrect ? "✅ Correct" : "❌ Incorrect";
+    resultOverlay.classList.add("show");
+  }
+
+  function hideResultModal(){
+    resultOverlay.classList.remove("show");
   }
 
   function render(){
@@ -580,7 +644,10 @@ ${emoji(state.results[2])} Round 3`;
     const n = r.options.length;
 
     roundTitle.textContent = `Round ${state.roundIndex + 1}`;
+    instrText.innerHTML = `Pick the one tile that doesn’t belong, then <b>Lock in</b>.`;
     progFill.style.width = `${(state.locked.filter(Boolean).length/3)*100}%`;
+
+    // Desktop grid sizing (mobile override handled in CSS media query)
     gridEl.style.gridTemplateColumns = `repeat(${colsFor(n)},1fr)`;
     gridEl.innerHTML = "";
 
@@ -616,6 +683,7 @@ ${emoji(state.results[2])} Round 3`;
       ruleBox.innerHTML=`<strong>Rule:</strong> ${r.rule}`;
     } else {
       ruleBox.style.display="none";
+      ruleBox.innerHTML="";
     }
 
     if(state.locked.every(Boolean)){
@@ -623,8 +691,6 @@ ${emoji(state.results[2])} Round 3`;
       msgEl.textContent = `Done! Score: ${score}/3.`;
       shareBox.style.display="block";
       shareText.value = buildShare();
-
-      // Show completion modal once per day (but allow reopening by refreshing after reset)
       if(!state.shownCompleteModal) showCompletionModal();
     } else {
       msgEl.textContent = "Choose the odd one out.";
@@ -637,10 +703,16 @@ ${emoji(state.results[2])} Round 3`;
     const r = dayPuzzle.rounds[state.roundIndex];
     const s = state.selected[state.roundIndex];
     if(s == null) return;
-    state.results[state.roundIndex] = (s === r.oddIndex);
+
+    const correct = (s === r.oddIndex);
+    state.results[state.roundIndex] = correct;
     state.locked[state.roundIndex] = true;
+
     save();
     render();
+
+    // Popup after each round lock-in
+    showResultModal(correct);
   };
 
   nextBtn.onclick=()=>{
@@ -662,10 +734,10 @@ ${emoji(state.results[2])} Round 3`;
     location.reload();
   };
 
-  // Modal actions
-  closeModal.onclick = hideModal;
-  modalOk.onclick = hideModal;
-  overlay.addEventListener("click", (e) => { if(e.target === overlay) hideModal(); });
+  // Completion modal actions
+  closeModal.onclick = hideCompletionModal;
+  modalOk.onclick = hideCompletionModal;
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) hideCompletionModal(); });
 
   modalCopy.onclick = async () => {
     const txt = buildShare();
@@ -677,9 +749,16 @@ ${emoji(state.results[2])} Round 3`;
     }
   };
 
-  // ESC closes modal
+  // Result modal actions
+  closeResult.onclick = hideResultModal;
+  resultContinue.onclick = hideResultModal;
+  resultOverlay.addEventListener("click", (e) => { if(e.target === resultOverlay) hideResultModal(); });
+
+  // ESC closes any open modal
   window.addEventListener("keydown", (e) => {
-    if(e.key === "Escape") hideModal();
+    if(e.key !== "Escape") return;
+    hideResultModal();
+    hideCompletionModal();
   });
 
   render();
