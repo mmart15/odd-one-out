@@ -644,48 +644,33 @@
   // Round 1: very obvious category
   // Round 2: pattern-based (not too brutal)
   // Round 3: trickier but guessable with thought
-  const DAYS = [
-    {
-      id: 1,
-      rounds: [
-        {
-          // EASY: 4 words
-          options: ["SALMON", "TUNA", "TROUT", "ROBIN"],
-          oddIndex: 3,
-          rule: "Three are fish."
-        },
-        {
-          // MEDIUM: 8 words (same general idea, one breaks a pattern)
-          // 7 are palindromes? no; do: 7 are US states? too many. Do: 7 are anagrams of a month? Hmm.
-          // Use: 7 are words that contain only one vowel letter? (A/E/I/O/U) tricky.
-          // We'll do: 7 are words with exactly 5 letters; one is 6. But too easy.
-          // Better: 7 are nouns you can "wear", one you can't.
-          options: ["JACKET","GLOVES","SCARF","BELT","HAT","SOCKS","RING","LADDER"],
-          oddIndex: 7,
-          rule: "Seven are worn."
-        },
-        {
-          // HARDER: 12 words: silent-letter clusters pattern, but not impossible
-          options: ["KNIFE","KNEE","KNOT","KNEW","WRITE","WRONG","WRIST","PSALM","PSYCHIC","PNEUMONIA","GNOME","GNAW"],
-          // Odd one out: "WRONG" actually has silent W like others; all have silent first letter?
-          // Here 11 have silent first letter (k,w,p,g). "PSYCHIC" has silent P too. Hmm all have silent.
-          // Let's pick odd: "WRONG" & "WRITE" etc all silent W; G words silent G; K silent K; P silent P.
-          // Make odd one a non-silent starter: "KNEE" silent K yes. Need a word that looks similar but not silent:
-          // Use "WRECK" silent W (ok). Use "PSALTERY" silent P (ok). Let's add "KNACK" silent K.
-          // Add one that starts with same letters but pronounced: "GNAT" silent G, still.
-          // Let's instead make rule: most have silent first letter, except "PSYCHIC" actually P is silent, still.
-          // Ok new idea: 11 start with silent consonant + 'N' or 'R' cluster (kn-, wr-, gn-). Add ps- and pn- breaks. Too hard.
-          // Let's do: 11 have a silent first letter; 1 does not: "PSYCHIC" actually does; "PNEUMONIA" silent P.
-          // Use "KNEAD" silent K; all silent. Need one without silent: "ROBOT". That breaks theme though.
-          // We'll do a fairer medium-hard: 11 contain a silent letter; 1 does not but looks like it might: "PSALM" silent P, "ISLAND" silent S, etc.
-          // Let's change whole set: 11 have silent letters; one does not.
-          options: ["KNEE","KNIFE","WRIST","WRITE","PSALM","PNEUMONIA","GNOME","ISLAND","HONEST","WHISTLE","DOUBT","ROBIN"],
-          oddIndex: 11,
-          rule: "Most contain a silent letter."
-        }
-      ]
-    }
-  ];
+  
+  const  DAYS = [
+  {
+    id: 1,
+    rounds: [
+      {
+        // Round 1 (4 words – easy)
+        options: ["DOG", "CAT", "HORSE", "CAR"],
+        oddIndex: 3,
+        rule: "Three are animals."
+      },
+      {
+        // Round 2 (6 words – medium)
+        options: ["APPLE", "PEAR", "PLUM", "PEACH", "GRAPE", "CARROT"],
+        oddIndex: 5,
+        rule: "Five are fruits."
+      },
+      {
+        // Round 3 (8 words – harder but fair)
+        options: ["KNIFE", "KNEE", "KNOT", "KNEW", "GNOME", "WRITE", "WRONG", "ROBOT"],
+        oddIndex: 7,
+        rule: "Most begin with a silent letter."
+      }
+    ]
+  }
+];
+
 
   // --- Day selection ---
   const start = new Date(Date.UTC(2026, 0, 1));
