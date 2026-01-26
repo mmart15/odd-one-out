@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Odd One Out — Daily</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --tile:#f8fafc;
+      --tileHover:#eef2f7;
+      --accent:#ef4444;
+      --accentSoft:#fee2e2;
+      --sel:#3b82f6;
+      --selSoft:#dbeafe;
+      --ok:#22c55e;
+      --okSoft:#dcfce7;
+      --bad:#ef4444;
+      --badSoft:#fee2e2;
+      --hint:#a855f7;
+      --hintSoft:#f3e8ff;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      color:var(--ink);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(900px 500px at 12% 10%, var(--accentSoft), transparent 55%),
+        radial-gradient(800px 480px at 92% 0%, var(--selSoft), transparent 55%),
+        radial-gradient(900px 600px at 80% 95%, var(--okSoft), transparent 55%),
+        var(--bg);
+    }
+
+    .wrap{ width:min(900px, 96vw); }
+
+    .panel{
+      background: rgba(255,255,255,.9);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:14px;
+      box-shadow: 0 12px 35px rgba(15,23,42,.10);
+      backdrop-filter: blur(6px);
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin:0 0 10px 0;
+    }
+
+    .title{
+      font-weight:900;
+      letter-spacing:.2px;
+      font-size:18px;
+      margin:0;
+    }
+    .title .out{ color:var(--accent); }
+
+    .meta{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .chip{
+      border:1px solid var(--border);
+      padding:6px 10px;
+      border-radius:999px;
+      background:#fff;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      white-space:nowrap;
+    }
+
+    .chip .dot{
+      width:9px; height:9px; border-radius:999px;
+      background: var(--hint);
+      box-shadow: 0 0 0 4px rgba(168,85,247,.14);
+    }
+
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid var(--border);
+      overflow:hidden;
+      width: 180px;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, var(--sel), var(--accent));
+      border-radius:999px;
+      transition: width .25s ease;
+    }
+
+    .game{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px;
+      background:#fff;
+    }
+
+    .topline{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+
+    .roundLabel{
+      font-size:14px;
+      font-weight:900;
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+    }
+
+    .instruction{
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .grid{
+      display:grid;
+      gap:10px;
+    }
+
+    button.tile{
+      appearance:none;
+      border:1px solid var(--border);
+      background: var(--tile);
+      color: var(--ink);
+      border-radius:14px;
+      padding:14px 10px;
+      cursor:pointer;
+      user-select:none;
+      font-weight:900;
+      text-transform: uppercase;
+      letter-spacing:.5px;
+      transition: transform .06s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+    button.tile:hover{ background: var(--tileHover); }
+    button.tile:active{ transform: translateY(1px); }
+    button.tile[disabled]{ cursor:not-allowed; opacity:.95; }
+
+    button.tile.selected{
+      background:#fff;
+      border-color: rgba(59,130,246,.55);
+      box-shadow: 0 0 0 3px rgba(59,130,246,.18);
+    }
+
+    button.tile.correct{
+      background: linear-gradient(180deg, var(--ok), #16a34a);
+      color:#fff;
+      border-color: rgba(34,197,94,.9);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.15);
+    }
+    button.tile.wrong{
+      background: linear-gradient(180deg, var(--bad), #dc2626);
+      color:#fff;
+      border-color: rgba(239,68,68,.9);
+      box-shadow: 0 0 0 3px rgba(239,68,68,.12);
+    }
+
+    .controls{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+
+    .pickcount{
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .pickcount .badge{
+      border:1px solid var(--border);
+      background:#fff;
+      padding:4px 8px;
+      border-radius:999px;
+      font-weight:800;
+      color: var(--ink);
+    }
+
+    .btnRow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .btn{
+      appearance:none;
+      border:1px solid var(--border);
+      background:#fff;
+      color: var(--ink);
+      padding:9px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:900;
+      letter-spacing:.2px;
+      transition: background .15s ease, transform .06s ease, border-color .15s ease;
+    }
+    .btn:hover{ background:#f8fafc; }
+    .btn:active{ transform: translateY(1px); }
+    .btn[disabled]{ opacity:.55; cursor:not-allowed; }
+
+    .btn.primary{
+      border-color: rgba(59,130,246,.45);
+      background: linear-gradient(180deg, rgba(59,130,246,.12), rgba(59,130,246,.06));
+    }
+    .btn.primary:hover{ background: rgba(59,130,246,.12); }
+
+    .btn.ghost{
+      border-color: rgba(239,68,68,.35);
+      background: linear-gradient(180deg, rgba(239,68,68,.10), rgba(239,68,68,.05));
+    }
+    .btn.ghost:hover{ background: rgba(239,68,68,.10); }
+
+    .rule{
+      margin-top:10px;
+      padding-top:10px;
+      border-top:1px dashed var(--border);
+      color:var(--muted);
+      font-size:12px;
+      display:none;
+    }
+    .rule strong{ color:var(--ink); }
+
+    .footer{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      color: var(--muted);
+      font-size:12px;
+      min-height:18px;
+    }
+
+    .sharebox{
+      margin-top:10px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#fff;
+      display:none;
+    }
+    textarea{
+      width:100%;
+      min-height:82px;
+      resize:vertical;
+      background:#fff;
+      color:var(--ink);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size:12px;
+    }
+
+    /* ===== Completion Modal ===== */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(15,23,42,.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:9999;
+    }
+    .overlay.show{ display:flex; }
+
+    .modal{
+      width:min(520px, 96vw);
+      background: rgba(255,255,255,.95);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow: 0 25px 80px rgba(15,23,42,.25);
+      padding:14px;
+      backdrop-filter: blur(8px);
+    }
+
+    .modalTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+    }
+
+    .modalTitle{
+      margin:0;
+      font-size:16px;
+      font-weight:950;
+      letter-spacing:.2px;
+    }
+
+    .xbtn{
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius:12px;
+      width:38px;
+      height:38px;
+      cursor:pointer;
+      font-weight:900;
+      color: var(--muted);
+    }
+    .xbtn:hover{ background:#f8fafc; }
+
+    .scoreLine{
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      color: var(--muted);
+      font-size:12px;
+    }
+    .scorePill{
+      border:1px solid var(--border);
+      background:#fff;
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:900;
+      color: var(--ink);
+    }
+    .tomorrow{
+      margin-top:10px;
+      font-size:13px;
+      color: var(--ink);
+    }
+    .tomorrow b{ color: var(--accent); }
+
+    .modalActions{
+      margin-top:12px;
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .miniShare{
+      margin-top:10px;
+      padding:10px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+    }
+    .miniShare pre{
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size:12px;
+      color: var(--ink);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <header>
+        <h1 class="title">Odd One <span class="out">Out</span></h1>
+        <div class="meta">
+          <div class="chip"><span class="dot"></span><span id="dayText">Day</span></div>
+          <div class="bar"><div id="progFill"></div></div>
+        </div>
+      </header>
+
+      <div class="game">
+        <div class="topline">
+          <div class="roundLabel">
+            <span id="roundTitle">Round 1</span>
+          </div>
+          <div class="instruction" id="instrText">Pick the one tile that doesn’t belong, then <b>Lock in</b>.</div>
+        </div>
+
+        <div class="grid" id="grid"></div>
+
+        <div class="controls">
+          <div class="pickcount">
+            <span class="badge" id="pickBadge">0/1</span>
+            <span id="pickHint">Selected</span>
+          </div>
+          <div class="btnRow">
+            <button class="btn primary" id="lockBtn" disabled>Lock in</button>
+            <button class="btn" id="nextBtn" disabled>Next</button>
+          </div>
+        </div>
+
+        <div class="rule" id="ruleBox"></div>
+      </div>
+
+      <div class="footer">
+        <div id="msg"></div>
+        <div class="btnRow">
+          <button class="btn" id="resetBtn">Reset Today</button>
+          <button class="btn ghost" id="copyBtn">Copy Share</button>
+        </div>
+      </div>
+
+      <div class="sharebox" id="shareBox">
+        <textarea id="shareText" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completion Modal -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Puzzle complete">
+    <div class="modal">
+      <div class="modalTop">
+        <div>
+          <h2 class="modalTitle">All done 🎉</h2>
+          <div class="scoreLine">
+            <span class="scorePill" id="scorePill">Score: 0/3</span>
+            <span id="scoreNote">—</span>
+          </div>
+        </div>
+        <button class="xbtn" id="closeModal" aria-label="Close">✕</button>
+      </div>
+
+      <div class="tomorrow">Come back <b>tomorrow</b> for a new puzzle.</div>
+
+      <div class="miniShare">
+        <pre id="miniShareText"></pre>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn ghost" id="modalCopy">Copy Share</button>
+        <button class="btn primary" id="modalOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const DAYS = [
+    {
+      id: 1,
+      rounds: [
+        { options:["MERCURY","VENUS","MARS","SIRIUS"], oddIndex:3, rule:"Three are planets. Sirius is a star." },
+        { options:["BANK","SEAL","PALM","CRANE","RING","MATCH","BARK","PILLOW"], oddIndex:7, rule:"Seven are common noun/verbs. Pillow is mainly a noun." },
+        { options:["KNEE","KNIFE","KNOT","KNEAD","GNOME","WRITE","WRONG","PSALM","PSYCHE","PNEUMONIA","PSALTERY","KNEW"], oddIndex:4, rule:"Most start with silent clusters (kn-, wr-, ps-, pn-). Gnome uses silent g." }
+      ]
+    }
+  ];
+
+  const start = new Date(Date.UTC(2026, 0, 1));
+  const now = new Date();
+  const utcMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const dayNumber = Math.floor((utcMidnight - start) / 86400000) + 1;
+  const dayPuzzle = DAYS[(dayNumber - 1) % DAYS.length];
+  const storageKey = `ooo_daily_${dayNumber}`;
+
+  const dayText = document.getElementById("dayText");
+  const progFill = document.getElementById("progFill");
+  const roundTitle = document.getElementById("roundTitle");
+  const instrText = document.getElementById("instrText");
+  const gridEl = document.getElementById("grid");
+  const pickBadge = document.getElementById("pickBadge");
+  const lockBtn = document.getElementById("lockBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const ruleBox = document.getElementById("ruleBox");
+  const msgEl = document.getElementById("msg");
+  const resetBtn = document.getElementById("resetBtn");
+  const copyBtn = document.getElementById("copyBtn");
+  const shareBox = document.getElementById("shareBox");
+  const shareText = document.getElementById("shareText");
+
+  // Modal elements
+  const overlay = document.getElementById("overlay");
+  const closeModal = document.getElementById("closeModal");
+  const modalOk = document.getElementById("modalOk");
+  const modalCopy = document.getElementById("modalCopy");
+  const scorePill = document.getElementById("scorePill");
+  const scoreNote = document.getElementById("scoreNote");
+  const miniShareText = document.getElementById("miniShareText");
+
+  dayText.textContent = `Day #${dayNumber}`;
+
+  let state = JSON.parse(localStorage.getItem(storageKey)) || {
+    roundIndex:0,
+    selected:[null,null,null],
+    locked:[false,false,false],
+    results:[null,null,null],
+    shownCompleteModal:false
+  };
+
+  function save(){ localStorage.setItem(storageKey, JSON.stringify(state)); }
+
+  function colsFor(n){ return n <= 4 ? 2 : 4; }
+
+  function emoji(r){ return r===true ? "🟩" : "🟥"; }
+
+  function buildShare(){
+    return `Odd One Out #${dayNumber}
+${emoji(state.results[0])} Round 1
+${emoji(state.results[1])} Round 2
+${emoji(state.results[2])} Round 3`;
+  }
+
+  function showCompletionModal(){
+    const score = state.results.filter(v => v === true).length;
+    scorePill.textContent = `Score: ${score}/3`;
+
+    // small flavor note
+    scoreNote.textContent =
+      score === 3 ? "Perfect!" :
+      score === 2 ? "Nice work." :
+      score === 1 ? "You got one." :
+      "Tough one today.";
+
+    miniShareText.textContent = buildShare();
+
+    overlay.classList.add("show");
+    state.shownCompleteModal = true;
+    save();
+  }
+
+  function hideModal(){
+    overlay.classList.remove("show");
+  }
+
+  function render(){
+    const r = dayPuzzle.rounds[state.roundIndex];
+    const n = r.options.length;
+
+    roundTitle.textContent = `Round ${state.roundIndex + 1}`;
+    progFill.style.width = `${(state.locked.filter(Boolean).length/3)*100}%`;
+    gridEl.style.gridTemplateColumns = `repeat(${colsFor(n)},1fr)`;
+    gridEl.innerHTML = "";
+
+    r.options.forEach((w,i)=>{
+      const b=document.createElement("button");
+      b.className="tile";
+      b.textContent=w;
+      b.disabled = state.locked[state.roundIndex];
+
+      if(!state.locked[state.roundIndex] && state.selected[state.roundIndex]===i) b.classList.add("selected");
+
+      if(state.locked[state.roundIndex]){
+        if(i===state.selected[state.roundIndex]) b.classList.add(i===r.oddIndex ? "correct" : "wrong");
+        if(state.selected[state.roundIndex]!==r.oddIndex && i===r.oddIndex) b.classList.add("correct");
+      }
+
+      b.onclick=()=>{
+        if(state.locked[state.roundIndex]) return;
+        state.selected[state.roundIndex]=i;
+        save();
+        render();
+      };
+
+      gridEl.appendChild(b);
+    });
+
+    pickBadge.textContent = `${state.selected[state.roundIndex]==null?0:1}/1`;
+    lockBtn.disabled = state.locked[state.roundIndex] || state.selected[state.roundIndex]==null;
+    nextBtn.disabled = !state.locked[state.roundIndex] || state.roundIndex===2;
+
+    if(state.locked[state.roundIndex]){
+      ruleBox.style.display="block";
+      ruleBox.innerHTML=`<strong>Rule:</strong> ${r.rule}`;
+    } else {
+      ruleBox.style.display="none";
+    }
+
+    if(state.locked.every(Boolean)){
+      const score = state.results.filter(v => v === true).length;
+      msgEl.textContent = `Done! Score: ${score}/3.`;
+      shareBox.style.display="block";
+      shareText.value = buildShare();
+
+      // Show completion modal once per day (but allow reopening by refreshing after reset)
+      if(!state.shownCompleteModal) showCompletionModal();
+    } else {
+      msgEl.textContent = "Choose the odd one out.";
+      shareBox.style.display="none";
+      shareText.value = "";
+    }
+  }
+
+  lockBtn.onclick=()=>{
+    const r = dayPuzzle.rounds[state.roundIndex];
+    const s = state.selected[state.roundIndex];
+    if(s == null) return;
+    state.results[state.roundIndex] = (s === r.oddIndex);
+    state.locked[state.roundIndex] = true;
+    save();
+    render();
+  };
+
+  nextBtn.onclick=()=>{
+    if(state.roundIndex < 2){
+      state.roundIndex++;
+      save();
+      render();
+    }
+  };
+
+  copyBtn.onclick=async ()=>{
+    const txt = buildShare();
+    try{ await navigator.clipboard.writeText(txt); msgEl.textContent="Copied share text!"; }
+    catch { msgEl.textContent="Clipboard blocked—copy from the box."; }
+  };
+
+  resetBtn.onclick=()=>{
+    localStorage.removeItem(storageKey);
+    location.reload();
+  };
+
+  // Modal actions
+  closeModal.onclick = hideModal;
+  modalOk.onclick = hideModal;
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) hideModal(); });
+
+  modalCopy.onclick = async () => {
+    const txt = buildShare();
+    try{
+      await navigator.clipboard.writeText(txt);
+      scoreNote.textContent = "Copied!";
+    } catch {
+      scoreNote.textContent = "Copy manually below.";
+    }
+  };
+
+  // ESC closes modal
+  window.addEventListener("keydown", (e) => {
+    if(e.key === "Escape") hideModal();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
