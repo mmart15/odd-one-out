@@ -420,6 +420,19 @@
       .grid{
         grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
       }
+      /* Prevent any horizontal overflow on mobile / larger text settings */
+html, body { overflow-x: hidden; }
+
+/* Prevent iOS from auto-scaling text in a way that breaks layouts */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* Critical: allow grid items to shrink instead of forcing overflow */
+.grid { width: 100%; }
+.grid > * { min-width: 0; }
+
+/* Critical: allow the button and its text to shrink */
+button.tile { min-width: 0; }
+button.tile { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
       button.tile {
         padding: 10px 6px;
