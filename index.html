@@ -26,6 +26,11 @@
 
     *{ box-sizing:border-box; }
 
+    /* Prevent any horizontal overflow on mobile / larger text settings */
+    html, body { overflow-x: hidden; }
+    /* Prevent iOS from auto-scaling text in a way that breaks layouts */
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
     body{
       margin:0;
       min-height:100vh;
@@ -64,6 +69,7 @@
       letter-spacing:.2px;
       font-size:18px;
       margin:0;
+      line-height:1.1;
     }
     .title .out{ color:var(--accent); }
 
@@ -137,12 +143,16 @@
     .instruction{
       color:var(--muted);
       font-size:12px;
+      font-weight:800; /* bolder for accessibility */
     }
 
     .grid{
       display:grid;
       gap:10px;
+      width:100%;
     }
+    /* Critical: allow grid items to shrink instead of forcing overflow */
+    .grid > * { min-width: 0; }
 
     button.tile{
       appearance:none;
@@ -157,6 +167,10 @@
       text-transform: uppercase;
       letter-spacing:.5px;
       transition: transform .06s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+      min-width:0; /* Critical */
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
     }
     button.tile:hover{ background: var(--tileHover); }
     button.tile:active{ transform: translateY(1px); }
@@ -241,7 +255,8 @@
       padding-top:10px;
       border-top:1px dashed var(--border);
       color:var(--muted);
-      font-size:12px;
+      font-size:13px;
+      font-weight:800;
       display:none;
     }
     .rule strong{ color:var(--ink); }
@@ -279,7 +294,71 @@
       font-size:12px;
     }
 
-    /* ===== Completion Modal + Result Modal ===== */
+    /* ===== End Screen (Daily Complete) ===== */
+    .endScreen{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:18px 14px;
+      background:#fff;
+      display:none;
+      text-align:center;
+    }
+    .endTitle{
+      margin:0;
+      font-size:18px;
+      font-weight:950;
+      letter-spacing:.2px;
+    }
+    .endSub{
+      margin:8px 0 0 0;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:800;
+    }
+    .endScore{
+      margin:10px 0 0 0;
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+    }
+    .endScore .pill{
+      border:1px solid var(--border);
+      background:#fff;
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:900;
+      color: var(--ink);
+    }
+    .endActions{
+      margin-top:12px;
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .endMiniShare{
+      margin-top:12px;
+      padding:10px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+      text-align:left;
+    }
+    .endMiniShare pre{
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size:12px;
+      color: var(--ink);
+    }
+
+    /* ===== Modals ===== */
     .overlay{
       position:fixed;
       inset:0;
@@ -349,6 +428,7 @@
       margin-top:10px;
       font-size:13px;
       color: var(--ink);
+      font-weight:800;
     }
     .tomorrow b{ color: var(--accent); }
 
@@ -376,10 +456,8 @@
       color: var(--ink);
     }
 
-    /* Result popup tweaks */
-    .modal.small{
-      width:min(420px, 96vw);
-    }
+    /* Round Result Popup */
+    .modal.small{ width:min(420px, 96vw); }
     .resultBadge{
       display:inline-flex;
       align-items:center;
@@ -402,54 +480,18 @@
 
     /* Mobile sizing */
     @media (max-width: 480px) {
-      .wrap {
-        width: 100vw;
-        padding: 6px;
-      }
-
-      .panel {
-        padding: 10px;
-        border-radius: 14px;
-      }
-
-      .game {
-        padding: 8px;
-      }
+      .wrap { width: 100vw; padding: 6px; }
+      .panel { padding: 10px; border-radius: 14px; }
+      .game { padding: 8px; }
 
       /* Fix tiny overhang/overflow on mobile grids */
-      .grid{
-        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-      }
-      /* Prevent any horizontal overflow on mobile / larger text settings */
-html, body { overflow-x: hidden; }
+      .grid { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
 
-/* Prevent iOS from auto-scaling text in a way that breaks layouts */
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+      button.tile { padding: 10px 6px; font-size: 13px; }
 
-/* Critical: allow grid items to shrink instead of forcing overflow */
-.grid { width: 100%; }
-.grid > * { min-width: 0; }
-
-/* Critical: allow the button and its text to shrink */
-button.tile { min-width: 0; }
-button.tile { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-      button.tile {
-        padding: 10px 6px;
-        font-size: 13px;
-      }
-
-      .title {
-        font-size: 16px;
-      }
-
-      .roundLabel {
-        font-size: 13px;
-      }
-
-      .instruction {
-        font-size: 11px;
-      }
+      .title { font-size: 16px; }
+      .roundLabel { font-size: 13px; }
+      .instruction { font-size: 12px; }
     }
   </style>
 </head>
@@ -465,12 +507,11 @@ button.tile { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         </div>
       </header>
 
-      <div class="game">
+      <!-- Game Screen -->
+      <div class="game" id="gameScreen">
         <div class="topline">
-          <div class="roundLabel">
-            <span id="roundTitle">Round 1</span>
-          </div>
-          <div class="instruction" id="instrText">Pick the one tile that doesn’t belong, then <b>Lock in</b>.</div>
+          <div class="roundLabel"><span id="roundTitle">Round 1</span></div>
+          <div class="instruction" id="instrText"><b>Find the odd word and lock it in.</b></div>
         </div>
 
         <div class="grid" id="grid"></div>
@@ -489,10 +530,29 @@ button.tile { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         <div class="rule" id="ruleBox"></div>
       </div>
 
+      <!-- Daily Complete Screen (shows if you already played) -->
+      <div class="endScreen" id="endScreen">
+        <h2 class="endTitle">Thanks for playing!</h2>
+        <p class="endSub">Come back tomorrow for a new puzzle.</p>
+
+        <div class="endScore">
+          <span class="pill" id="endScorePill">Score: 0/3</span>
+          <span id="endScoreNote">—</span>
+        </div>
+
+        <div class="endActions">
+          <button class="btn ghost" id="endCopyBtn">Copy Share</button>
+        </div>
+
+        <div class="endMiniShare">
+          <pre id="endMiniShareText"></pre>
+        </div>
+      </div>
+
       <div class="footer">
         <div id="msg"></div>
         <div class="btnRow">
-  <button class="btn ghost" id="copyBtn">Copy Share</button>
+          <button class="btn ghost" id="copyBtn">Copy Share</button>
         </div>
       </div>
 
@@ -552,9 +612,9 @@ button.tile { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     {
       id: 1,
       rounds: [
-        { options:["MERCURY","VENUS","MARS","SIRIUS"], oddIndex:3, rule:"Three are planets. Sirius is a star." },
-        { options:["BANK","SEAL","PALM","CRANE","RING","MATCH","BARK","PILLOW"], oddIndex:7, rule:"Seven are common noun/verbs. Pillow is mainly a noun." },
-        { options:["KNEE","KNIFE","KNOT","KNEAD","GNOME","WRITE","WRONG","PSALM","PSYCHE","PNEUMONIA","PSALTERY","KNEW"], oddIndex:4, rule:"Most start with silent clusters (kn-, wr-, ps-, pn-). Gnome uses silent g." }
+        { options:["MERCURY","VENUS","MARS","SIRIUS"], oddIndex:3, rule:"Planets vs. star." },
+        { options:["BANK","SEAL","PALM","CRANE","RING","MATCH","BARK","PILLOW"], oddIndex:7, rule:"One doesn’t behave like the others." },
+        { options:["KNEE","KNIFE","KNOT","KNEAD","GNOME","WRITE","WRONG","PSALM","PSYCHE","PNEUMONIA","PSALTERY","KNEW"], oddIndex:4, rule:"Silent clusters vs. silent g." }
       ]
     }
   ];
@@ -579,6 +639,13 @@ button.tile { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   const copyBtn = document.getElementById("copyBtn");
   const shareBox = document.getElementById("shareBox");
   const shareText = document.getElementById("shareText");
+
+  const gameScreen = document.getElementById("gameScreen");
+  const endScreen = document.getElementById("endScreen");
+  const endScorePill = document.getElementById("endScorePill");
+  const endScoreNote = document.getElementById("endScoreNote");
+  const endMiniShareText = document.getElementById("endMiniShareText");
+  const endCopyBtn = document.getElementById("endCopyBtn");
 
   // Completion modal elements
   const overlay = document.getElementById("overlay");
@@ -609,7 +676,6 @@ button.tile { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   function save(){ localStorage.setItem(storageKey, JSON.stringify(state)); }
 
   function colsFor(n){ return n <= 4 ? 2 : 4; }
-
   function emoji(r){ return r===true ? "🟩" : "🟥"; }
 
   function buildShare(){
@@ -619,25 +685,28 @@ ${emoji(state.results[1])} Round 2
 ${emoji(state.results[2])} Round 3`;
   }
 
+  function score(){
+    return state.results.filter(v => v === true).length;
+  }
+
+  function scoreFlavor(s){
+    return s === 3 ? "Perfect!" :
+           s === 2 ? "Nice work." :
+           s === 1 ? "You got one." :
+           "Tough one today.";
+  }
+
   function showCompletionModal(){
-    const score = state.results.filter(v => v === true).length;
-    scorePill.textContent = `Score: ${score}/3`;
-
-    scoreNote.textContent =
-      score === 3 ? "Perfect!" :
-      score === 2 ? "Nice work." :
-      score === 1 ? "You got one." :
-      "Tough one today.";
-
+    const s = score();
+    scorePill.textContent = `Score: ${s}/3`;
+    scoreNote.textContent = scoreFlavor(s);
     miniShareText.textContent = buildShare();
     overlay.classList.add("show");
     state.shownCompleteModal = true;
     save();
   }
 
-  function hideCompletionModal(){
-    overlay.classList.remove("show");
-  }
+  function hideCompletionModal(){ overlay.classList.remove("show"); }
 
   function showResultModal(isCorrect){
     resultTitle.textContent = `Round ${state.roundIndex + 1}`;
@@ -645,20 +714,34 @@ ${emoji(state.results[2])} Round 3`;
     resultBadge.textContent = isCorrect ? "✅ Correct" : "❌ Incorrect";
     resultOverlay.classList.add("show");
   }
+  function hideResultModal(){ resultOverlay.classList.remove("show"); }
 
-  function hideResultModal(){
-    resultOverlay.classList.remove("show");
+  function renderEndScreen(){
+    const s = score();
+    gameScreen.style.display = "none";
+    endScreen.style.display = "block";
+
+    endScorePill.textContent = `Score: ${s}/3`;
+    endScoreNote.textContent = scoreFlavor(s);
+    endMiniShareText.textContent = buildShare();
+
+    // Footer still shows copy; keep message simple
+    msgEl.textContent = `You're done for today.`;
+    shareBox.style.display = "none";
   }
 
-  function render(){
+  function renderGameScreen(){
     const r = dayPuzzle.rounds[state.roundIndex];
     const n = r.options.length;
+
+    gameScreen.style.display = "block";
+    endScreen.style.display = "none";
 
     roundTitle.textContent = `Round ${state.roundIndex + 1}`;
     instrText.innerHTML = `<b>Find the odd word and lock it in.</b>`;
     progFill.style.width = `${(state.locked.filter(Boolean).length/3)*100}%`;
 
-    // Desktop grid sizing (mobile override handled in CSS media query)
+    // Desktop grid sizing (mobile override handled in CSS)
     gridEl.style.gridTemplateColumns = `repeat(${colsFor(n)},1fr)`;
     gridEl.innerHTML = "";
 
@@ -697,17 +780,21 @@ ${emoji(state.results[2])} Round 3`;
       ruleBox.innerHTML="";
     }
 
+    msgEl.textContent = "Choose the odd one out.";
+  }
+
+  function render(){
+    // If completed, show the “Thanks for playing” screen instead of dead UI
     if(state.locked.every(Boolean)){
-      const score = state.results.filter(v => v === true).length;
-      msgEl.textContent = `Done! Score: ${score}/3.`;
-      shareBox.style.display="block";
+      renderEndScreen();
+      // still generate share content for copying
       shareText.value = buildShare();
+      shareBox.style.display = "none";
+      // show completion modal once (optional)
       if(!state.shownCompleteModal) showCompletionModal();
-    } else {
-      msgEl.textContent = "Choose the odd one out.";
-      shareBox.style.display="none";
-      shareText.value = "";
+      return;
     }
+    renderGameScreen();
   }
 
   lockBtn.onclick=()=>{
@@ -734,12 +821,18 @@ ${emoji(state.results[2])} Round 3`;
     }
   };
 
-  copyBtn.onclick=async ()=>{
+  async function doCopy(){
     const txt = buildShare();
-    try{ await navigator.clipboard.writeText(txt); msgEl.textContent="Copied share text!"; }
-    catch { msgEl.textContent="Clipboard blocked—copy from the box."; }
-  };
+    try{
+      await navigator.clipboard.writeText(txt);
+      msgEl.textContent = "Copied share text!";
+    } catch {
+      msgEl.textContent = "Clipboard blocked—copy manually.";
+    }
+  }
 
+  copyBtn.onclick = doCopy;
+  endCopyBtn.onclick = doCopy;
 
   // Completion modal actions
   closeModal.onclick = hideCompletionModal;
