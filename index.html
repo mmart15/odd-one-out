@@ -492,8 +492,7 @@ button.tile { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       <div class="footer">
         <div id="msg"></div>
         <div class="btnRow">
-          <button class="btn" id="resetBtn">Reset Today</button>
-          <button class="btn ghost" id="copyBtn">Copy Share</button>
+  <button class="btn ghost" id="copyBtn">Copy Share</button>
         </div>
       </div>
 
@@ -577,7 +576,6 @@ button.tile { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   const nextBtn = document.getElementById("nextBtn");
   const ruleBox = document.getElementById("ruleBox");
   const msgEl = document.getElementById("msg");
-  const resetBtn = document.getElementById("resetBtn");
   const copyBtn = document.getElementById("copyBtn");
   const shareBox = document.getElementById("shareBox");
   const shareText = document.getElementById("shareText");
@@ -657,7 +655,7 @@ ${emoji(state.results[2])} Round 3`;
     const n = r.options.length;
 
     roundTitle.textContent = `Round ${state.roundIndex + 1}`;
-    instrText.innerHTML = `Pick the one tile that doesn’t belong, then <b>Lock in</b>.`;
+    instrText.innerHTML = `<b>Find the odd word and lock it in.</b>`;
     progFill.style.width = `${(state.locked.filter(Boolean).length/3)*100}%`;
 
     // Desktop grid sizing (mobile override handled in CSS media query)
@@ -742,10 +740,6 @@ ${emoji(state.results[2])} Round 3`;
     catch { msgEl.textContent="Clipboard blocked—copy from the box."; }
   };
 
-  resetBtn.onclick=()=>{
-    localStorage.removeItem(storageKey);
-    location.reload();
-  };
 
   // Completion modal actions
   closeModal.onclick = hideCompletionModal;
