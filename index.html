@@ -154,7 +154,7 @@
     .instruction{
       color:var(--muted);
       font-size:12px;
-      font-weight:800;
+      font-weight:900;
       text-align:right;
       flex:1;
       min-width:180px;
@@ -168,16 +168,8 @@
       display:grid;
       place-items:center;
     }
-    .timerSvg{
-      width:34px;
-      height:34px;
-      display:block;
-    }
-    .timerBg{
-      stroke: rgba(100,116,139,.25);
-      stroke-width:4.5;
-      fill:none;
-    }
+    .timerSvg{ width:34px; height:34px; display:block; }
+    .timerBg{ stroke: rgba(100,116,139,.25); stroke-width:4.5; fill:none; }
     .timerFg{
       stroke: var(--sel);
       stroke-width:4.5;
@@ -195,6 +187,7 @@
       gap:10px;
       width:100%;
     }
+    /* allow grid items/buttons to shrink */
     .grid > * { min-width:0; }
 
     button.tile{
@@ -259,7 +252,7 @@
       background:#fff;
       padding:4px 8px;
       border-radius:999px;
-      font-weight:800;
+      font-weight:900;
       color: var(--ink);
     }
 
@@ -299,7 +292,7 @@
       border-top:1px dashed var(--border);
       color:var(--muted);
       font-size:13px;
-      font-weight:800;
+      font-weight:900;
       display:none;
     }
     .rule strong{ color:var(--ink); }
@@ -335,7 +328,7 @@
       margin:8px 0 0 0;
       color:var(--muted);
       font-size:13px;
-      font-weight:800;
+      font-weight:900;
     }
     .endScore{
       margin:10px 0 0 0;
@@ -346,14 +339,14 @@
       align-items:center;
       color:var(--muted);
       font-size:12px;
-      font-weight:800;
+      font-weight:900;
     }
     .endScore .pill{
       border:1px solid var(--border);
       background:#fff;
       padding:6px 10px;
       border-radius:999px;
-      font-weight:900;
+      font-weight:950;
       color: var(--ink);
     }
     .endActions{
@@ -424,7 +417,7 @@
       width:38px;
       height:38px;
       cursor:pointer;
-      font-weight:900;
+      font-weight:950;
       color: var(--muted);
     }
     .xbtn:hover{ background:#f8fafc; }
@@ -437,20 +430,21 @@
       align-items:center;
       color: var(--muted);
       font-size:12px;
+      font-weight:900;
     }
     .scorePill{
       border:1px solid var(--border);
       background:#fff;
       padding:6px 10px;
       border-radius:999px;
-      font-weight:900;
+      font-weight:950;
       color: var(--ink);
     }
     .tomorrow{
       margin-top:10px;
       font-size:13px;
       color: var(--ink);
-      font-weight:800;
+      font-weight:900;
     }
     .tomorrow b{ color: var(--accent); }
 
@@ -488,7 +482,7 @@
       border-radius:999px;
       border:1px solid var(--border);
       background:#fff;
-      font-weight:900;
+      font-weight:950;
       margin-top:10px;
     }
     .resultBadge.good{
@@ -506,7 +500,7 @@
       .panel { padding: 10px; border-radius: 14px; }
       .game { padding: 8px; }
 
-      /* Fix tiny overhang/overflow on mobile grids */
+      /* prevent tiny overhang */
       .grid { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
 
       button.tile { padding: 10px 6px; font-size: 13px; }
@@ -529,13 +523,10 @@
         </div>
       </header>
 
-      <!-- Game Screen -->
       <div class="game" id="gameScreen">
         <div class="topline">
           <div class="roundLeft">
             <div class="roundLabel"><span id="roundTitle">Round 1</span></div>
-
-            <!-- Timer Ring -->
             <div class="timerWrap" aria-label="Round timer">
               <svg class="timerSvg" viewBox="0 0 36 36" aria-hidden="true">
                 <circle class="timerBg" cx="18" cy="18" r="14"></circle>
@@ -543,7 +534,6 @@
               </svg>
             </div>
           </div>
-
           <div class="instruction" id="instrText"><b>Find the odd word and lock it in.</b></div>
         </div>
 
@@ -552,7 +542,7 @@
         <div class="controls">
           <div class="pickcount">
             <span class="badge" id="pickBadge">0/1</span>
-            <span id="pickHint">Selected</span>
+            <span>Selected</span>
           </div>
           <div class="btnRow">
             <button class="btn primary" id="lockBtn" disabled>Lock in</button>
@@ -563,7 +553,6 @@
         <div class="rule" id="ruleBox"></div>
       </div>
 
-      <!-- Daily Complete Screen -->
       <div class="endScreen" id="endScreen">
         <h2 class="endTitle">Thanks for playing!</h2>
         <p class="endSub">Come back tomorrow for a new puzzle.</p>
@@ -637,42 +626,38 @@
 
 <script>
 (() => {
-  // Round timers (seconds): 10 / 20 / 30
+  // Timers per round (seconds): 10 / 20 / 30
   const ROUND_SECONDS = [10, 20, 30];
 
-  // --- Daily puzzles (progressively harder, but fair) ---
-  // Round 1: very obvious category
-  // Round 2: pattern-based (not too brutal)
-  // Round 3: trickier but guessable with thought
-  
-  const  DAYS = [
-  {
-    id: 1,
-    rounds: [
-      {
-        // Round 1 (4 words – easy)
-        options: ["DOG", "CAT", "HORSE", "CAR"],
-        oddIndex: 3,
-        rule: "Three are animals."
-      },
-      {
-        // Round 2 (6 words – medium)
-        options: ["APPLE", "PEAR", "PLUM", "PEACH", "GRAPE", "CARROT"],
-        oddIndex: 5,
-        rule: "Five are fruits."
-      },
-      {
-        // Round 3 (8 words – harder but fair)
-        options: ["KNIFE", "KNEE", "KNOT", "KNEW", "GNOME", "WRITE", "WRONG", "ROBOT"],
-        oddIndex: 7,
-        rule: "Most begin with a silent letter."
-      }
-    ]
-  }
-];
+  // ONE daily puzzle (you can add more days to this list later)
+  // Round sizes: 3 / 6 / 9, progressively harder
+  const DAYS = [
+    {
+      id: 1,
+      rounds: [
+        {
+          // Round 1 (3) — quick but not baby-easy
+          options: ["RADAR", "LEVEL", "LEVER"],
+          oddIndex: 2,
+          rule: "Two are palindromes."
+        },
+        {
+          // Round 2 (6) — medium: one breaks a consistent category
+          options: ["XENON", "ARGON", "NEON", "RADON", "KRYPTON", "SODIUM"],
+          oddIndex: 5,
+          rule: "Most are noble gases."
+        },
+        {
+          // Round 3 (9) — tough in 30s: “silent letter” pattern spotting
+          options: ["SUBTLE", "ISLAND", "KNEAD", "WRIST", "PSALM", "DOUBT", "GNOME", "HOUR", "ROBOT"],
+          oddIndex: 8,
+          rule: "Most contain a silent letter."
+        }
+      ]
+    }
+  ];
 
-
-  // --- Day selection ---
+  // Day selection logic (cycles through DAYS)
   const start = new Date(Date.UTC(2026, 0, 1));
   const now = new Date();
   const utcMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
@@ -680,11 +665,10 @@
   const dayPuzzle = DAYS[(dayNumber - 1) % DAYS.length];
   const storageKey = `ooo_daily_${dayNumber}`;
 
-  // --- Elements ---
+  // Elements
   const dayText = document.getElementById("dayText");
   const progFill = document.getElementById("progFill");
   const roundTitle = document.getElementById("roundTitle");
-  const instrText = document.getElementById("instrText");
   const gridEl = document.getElementById("grid");
   const pickBadge = document.getElementById("pickBadge");
   const lockBtn = document.getElementById("lockBtn");
@@ -718,8 +702,7 @@
 
   dayText.textContent = `Day #${dayNumber}`;
 
-  // --- State ---
-  // timerStartedAt: [ms or null] per round
+  // State persisted per day
   let state = JSON.parse(localStorage.getItem(storageKey)) || {
     roundIndex: 0,
     selected: [null,null,null],
@@ -731,9 +714,8 @@
 
   function save(){ localStorage.setItem(storageKey, JSON.stringify(state)); }
 
-  // --- Helpers ---
-  function colsFor(n){ return n <= 4 ? 2 : 4; }
-  function emoji(r){ return r===true ? "🟩" : "🟥"; }
+  // Helpers
+  function emoji(r){ return r === true ? "🟩" : "🟥"; }
   function score(){ return state.results.filter(v => v === true).length; }
   function scoreFlavor(s){
     return s === 3 ? "Perfect!" :
@@ -741,7 +723,6 @@
            s === 1 ? "You got one." :
            "Tough one today.";
   }
-
   function buildShare(){
     return `Odd One Out #${dayNumber}
 ${emoji(state.results[0])} Round 1
@@ -749,22 +730,24 @@ ${emoji(state.results[1])} Round 2
 ${emoji(state.results[2])} Round 3`;
   }
 
-  // --- Timer ring logic ---
+  // Grid columns: always 3 columns for 3/6/9 (clean, consistent)
+  function colsFor(n){
+    if(n <= 3) return 3;
+    return 3;
+  }
+
+  // Timer ring logic
   let tickHandle = null;
 
   function ringSetup() {
-    // 2πr for r=14
     const C = 2 * Math.PI * 14;
     timerFg.style.strokeDasharray = `${C}`;
-    timerFg.style.strokeDashoffset = `${0}`;
+    timerFg.style.strokeDashoffset = `0`;
   }
-
   function stopTick(){
     if(tickHandle){ clearInterval(tickHandle); tickHandle = null; }
   }
-
   function roundTotalMs(ri){ return ROUND_SECONDS[ri] * 1000; }
-
   function getRemainingMs(ri){
     const startAt = state.timerStartedAt[ri];
     const total = roundTotalMs(ri);
@@ -772,7 +755,6 @@ ${emoji(state.results[2])} Round 3`;
     const elapsed = Date.now() - startAt;
     return Math.max(0, total - elapsed);
   }
-
   function setRingFromRemaining(ri){
     const total = roundTotalMs(ri);
     const rem = getRemainingMs(ri);
@@ -782,8 +764,7 @@ ${emoji(state.results[2])} Round 3`;
     timerFg.style.strokeDasharray = `${C}`;
     timerFg.style.strokeDashoffset = `${C * (1 - frac)}`;
 
-    // Color shifts near the end
-    if(frac <= 0.25) {
+    if(frac <= 0.25){
       timerFg.classList.remove("ok");
       timerFg.classList.add("warn");
     } else {
@@ -796,18 +777,16 @@ ${emoji(state.results[2])} Round 3`;
     const ri = state.roundIndex;
     if(state.locked[ri]) { stopTick(); return; }
 
-    // Start timer at first render of an unlocked round
-    if(!state.timerStartedAt[ri]) {
+    if(!state.timerStartedAt[ri]){
       state.timerStartedAt[ri] = Date.now();
       save();
     }
 
     stopTick();
     tickHandle = setInterval(() => {
-      if(resultOverlay.classList.contains("show") || overlay.classList.contains("show")) {
-        // Don’t tick/auto-submit while a modal is up
-        return;
-      }
+      // Don’t time-out while a modal is up
+      if(resultOverlay.classList.contains("show") || overlay.classList.contains("show")) return;
+
       const rem = getRemainingMs(ri);
       setRingFromRemaining(ri);
       if(rem <= 0){
@@ -818,7 +797,6 @@ ${emoji(state.results[2])} Round 3`;
   }
 
   function timeUpAutoLock(){
-    // If time runs out: lock round as incorrect (even if they selected something)
     const ri = state.roundIndex;
     if(state.locked[ri]) return;
 
@@ -827,14 +805,13 @@ ${emoji(state.results[2])} Round 3`;
     save();
     render();
 
-    // Show popup
     resultTitle.textContent = `Round ${ri + 1}`;
     resultBadge.className = "resultBadge bad";
     resultBadge.textContent = "⏱️ Time’s up";
     resultOverlay.classList.add("show");
   }
 
-  // --- Modals ---
+  // Modals
   function showCompletionModal(){
     const s = score();
     scorePill.textContent = `Score: ${s}/3`;
@@ -854,7 +831,7 @@ ${emoji(state.results[2])} Round 3`;
   }
   function hideResultModal(){ resultOverlay.classList.remove("show"); }
 
-  // --- Rendering ---
+  // Render
   function renderEndScreen(){
     stopTick();
     gameScreen.style.display = "none";
@@ -878,10 +855,8 @@ ${emoji(state.results[2])} Round 3`;
     endScreen.style.display = "none";
 
     roundTitle.textContent = `Round ${ri + 1}`;
-    instrText.innerHTML = `<b>Find the odd word and lock it in.</b>`;
     progFill.style.width = `${(state.locked.filter(Boolean).length / 3) * 100}%`;
 
-    // Grid columns (mobile overrides in CSS)
     gridEl.style.gridTemplateColumns = `repeat(${colsFor(n)}, 1fr)`;
     gridEl.innerHTML = "";
 
@@ -922,7 +897,6 @@ ${emoji(state.results[2])} Round 3`;
 
     msgEl.textContent = "Choose the odd one out.";
 
-    // Timer ring update
     ringSetup();
     setRingFromRemaining(ri);
     ensureTimerRunning();
@@ -937,7 +911,7 @@ ${emoji(state.results[2])} Round 3`;
     renderGameScreen();
   }
 
-  // --- Buttons ---
+  // Buttons
   lockBtn.onclick = () => {
     const ri = state.roundIndex;
     const r = dayPuzzle.rounds[ri];
@@ -985,7 +959,12 @@ ${emoji(state.results[2])} Round 3`;
   // Result modal actions
   closeResult.onclick = () => { hideResultModal(); render(); };
   resultContinue.onclick = () => { hideResultModal(); render(); };
-  resultOverlay.addEventListener("click", (e) => { if(e.target === resultOverlay) { hideResultModal(); render(); } });
+  resultOverlay.addEventListener("click", (e) => {
+    if(e.target === resultOverlay){
+      hideResultModal();
+      render();
+    }
+  });
 
   // ESC closes any open modal
   window.addEventListener("keydown", (e) => {
