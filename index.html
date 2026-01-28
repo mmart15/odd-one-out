@@ -3,1067 +3,701 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Odd One Out — Daily</title>
+  <title>Emoji Progression (Prototype)</title>
   <style>
     :root{
-      --bg:#ffffff;
-      --ink:#0f172a;
-      --muted:#64748b;
-      --border:#e2e8f0;
-      --tile:#f8fafc;
-      --tileHover:#eef2f7;
-
-      --accent:#ef4444;
-      --accentSoft:#fee2e2;
-
-      --sel:#3b82f6;
-      --selSoft:#dbeafe;
-
-      --ok:#22c55e;
-      --okSoft:#dcfce7;
-
-      --bad:#ef4444;
-      --badSoft:#fee2e2;
-
-      --hint:#a855f7;
-      --hintSoft:#f3e8ff;
+      --bg:#0B0F1A;
+      --panel:#121A2B;
+      --tile-empty:#18233A;
+      --tile-border:rgba(255,255,255,0.10);
+      --text:rgba(255,255,255,0.92);
+      --muted:rgba(255,255,255,0.65);
+      --green:#22C55E;
+      --yellow:#FBBF24;
+      --gray:#334155;
+      --accent:#7C3AED;
+      --danger:#EF4444;
+      --shadow:0 12px 40px rgba(0,0,0,0.40);
+      --radius:16px;
     }
 
-    *{ box-sizing:border-box; }
-
-    html, body { overflow-x:hidden; }
-    html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
-
+    *{box-sizing:border-box}
     body{
       margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 600px at 50% -10%, rgba(124,58,237,.25), transparent 60%),
+                  radial-gradient(900px 500px at 10% 30%, rgba(34,197,94,.14), transparent 60%),
+                  var(--bg);
+      color:var(--text);
       min-height:100vh;
-      display:grid;
-      place-items:center;
-      color:var(--ink);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background:
-        radial-gradient(900px 500px at 12% 10%, var(--accentSoft), transparent 55%),
-        radial-gradient(800px 480px at 92% 0%, var(--selSoft), transparent 55%),
-        radial-gradient(900px 600px at 80% 95%, var(--okSoft), transparent 55%),
-        var(--bg);
+      display:flex;
+      justify-content:center;
+      padding:24px 12px;
     }
 
-    .wrap{ width:min(900px, 96vw); }
-
-    .panel{
-      background: rgba(255,255,255,.9);
-      border:1px solid var(--border);
-      border-radius:18px;
-      padding:14px;
-      box-shadow: 0 12px 35px rgba(15,23,42,.10);
-      backdrop-filter: blur(6px);
+    .app{
+      width:min(520px, 100%);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
     }
 
-    header{
+    .topbar{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:12px;
-      margin:0 0 10px 0;
+      gap:10px;
+      padding:12px 14px;
+      background:rgba(18,26,43,.72);
+      border:1px solid var(--tile-border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(10px);
     }
 
     .title{
-      font-weight:900;
-      letter-spacing:.2px;
-      font-size:18px;
-      margin:0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
       line-height:1.1;
-    }
-    .title .out{ color:var(--accent); }
-
-    .meta{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-      color:var(--muted);
-      font-size:12px;
-    }
-
-    .chip{
-      border:1px solid var(--border);
-      padding:6px 10px;
-      border-radius:999px;
-      background:#fff;
-      display:flex;
-      gap:8px;
-      align-items:center;
-      white-space:nowrap;
-    }
-
-    .chip .dot{
-      width:9px; height:9px; border-radius:999px;
-      background: var(--hint);
-      box-shadow: 0 0 0 4px rgba(168,85,247,.14);
-    }
-
-    .bar{
-      height:10px;
-      border-radius:999px;
-      background:#fff;
-      border:1px solid var(--border);
-      overflow:hidden;
-      width: 180px;
-    }
-    .bar > div{
-      height:100%;
-      width:0%;
-      background: linear-gradient(90deg, var(--sel), var(--accent));
-      border-radius:999px;
-      transition: width .25s ease;
-    }
-
-    .game{
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:12px;
-      background:#fff;
-    }
-
-    .topline{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-bottom:10px;
-    }
-
-    .roundLeft{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .roundLabel{
-      font-size:14px;
-      font-weight:900;
-      display:flex;
-      align-items:baseline;
-      gap:10px;
-    }
-
-    .instruction{
-      color:var(--muted);
-      font-size:12px;
-      font-weight:900;
-      text-align:right;
       flex:1;
-      min-width:180px;
     }
+    .title strong{font-size:14px; letter-spacing:.5px}
+    .title span{font-size:12px; color:var(--muted)}
 
-    /* Timer ring */
-    .timerWrap{
-      width:34px;
-      height:34px;
-      border-radius:999px;
+    .iconbtn{
+      width:44px; height:44px;
+      border-radius:12px;
+      border:1px solid var(--tile-border);
+      background:rgba(255,255,255,0.04);
+      color:var(--text);
       display:grid;
       place-items:center;
-    }
-    .timerSvg{ width:34px; height:34px; display:block; }
-    .timerBg{ stroke: rgba(100,116,139,.25); stroke-width:4.5; fill:none; }
-    .timerFg{
-      stroke: var(--sel);
-      stroke-width:4.5;
-      fill:none;
-      stroke-linecap:round;
-      transform: rotate(-90deg);
-      transform-origin: 50% 50%;
-      transition: stroke .15s ease;
-    }
-    .timerFg.warn{ stroke: var(--accent); }
-    .timerFg.ok{ stroke: var(--sel); }
-
-    .grid{
-      display:grid;
-      gap:10px;
-      width:100%;
-    }
-    .grid > * { min-width:0; }
-
-    button.tile{
-      appearance:none;
-      border:1px solid var(--border);
-      background: var(--tile);
-      color: var(--ink);
-      border-radius:14px;
-      padding:14px 10px;
       cursor:pointer;
       user-select:none;
-      font-weight:900;
-      text-transform: uppercase;
-      letter-spacing:.5px;
-      transition: transform .06s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
-      min-width:0;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
+      transition: transform .06s ease, filter .06s ease;
     }
-    button.tile:hover{ background: var(--tileHover); }
-    button.tile:active{ transform: translateY(1px); }
-    button.tile[disabled]{ cursor:not-allowed; opacity:.95; }
+    .iconbtn:active{transform:scale(.98); filter:brightness(1.1)}
+    .iconbtn:focus{outline:2px solid rgba(124,58,237,.55); outline-offset:2px}
 
-    button.tile.selected{
-      background:#fff;
-      border-color: rgba(59,130,246,.55);
-      box-shadow: 0 0 0 3px rgba(59,130,246,.18);
-    }
-
-    button.tile.correct{
-      background: linear-gradient(180deg, var(--ok), #16a34a);
-      color:#fff;
-      border-color: rgba(34,197,94,.9);
-      box-shadow: 0 0 0 3px rgba(34,197,94,.15);
-    }
-    button.tile.wrong{
-      background: linear-gradient(180deg, var(--bad), #dc2626);
-      color:#fff;
-      border-color: rgba(239,68,68,.9);
-      box-shadow: 0 0 0 3px rgba(239,68,68,.12);
-    }
-
-    .controls{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-
-    .pickcount{
-      font-size:12px;
-      color:var(--muted);
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .pickcount .badge{
-      border:1px solid var(--border);
-      background:#fff;
-      padding:4px 8px;
-      border-radius:999px;
-      font-weight:900;
-      color: var(--ink);
-    }
-
-    .btnRow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
-
-    .btn{
-      appearance:none;
-      border:1px solid var(--border);
-      background:#fff;
-      color: var(--ink);
-      padding:9px 12px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:900;
-      letter-spacing:.2px;
-      transition: background .15s ease, transform .06s ease, border-color .15s ease;
-    }
-    .btn:hover{ background:#f8fafc; }
-    .btn:active{ transform: translateY(1px); }
-    .btn[disabled]{ opacity:.55; cursor:not-allowed; }
-
-    .btn.primary{
-      border-color: rgba(59,130,246,.45);
-      background: linear-gradient(180deg, rgba(59,130,246,.12), rgba(59,130,246,.06));
-    }
-    .btn.primary:hover{ background: rgba(59,130,246,.12); }
-
-    .btn.ghost{
-      border-color: rgba(239,68,68,.35);
-      background: linear-gradient(180deg, rgba(239,68,68,.10), rgba(239,68,68,.05));
-    }
-    .btn.ghost:hover{ background: rgba(239,68,68,.10); }
-
-    .rule{
-      margin-top:10px;
-      padding-top:10px;
-      border-top:1px dashed var(--border);
+    .prompt{
+      text-align:center;
       color:var(--muted);
       font-size:13px;
-      font-weight:900;
-      display:none;
     }
-    .rule strong{ color:var(--ink); }
+
+    .grid{
+      background:rgba(18,26,43,.66);
+      border:1px solid var(--tile-border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns:repeat(5, 1fr);
+      gap:10px;
+    }
+
+    .tile{
+      aspect-ratio:1/1;
+      border-radius:14px;
+      border:1px solid var(--tile-border);
+      background:var(--tile-empty);
+      display:grid;
+      place-items:center;
+      font-size:26px;
+      line-height:1;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+      transition: transform .12s ease, background .18s ease, border-color .18s ease, filter .18s ease;
+    }
+
+    .tile.pop{ animation: pop .10s ease-out; }
+    @keyframes pop { from { transform:scale(.92);} to { transform:scale(1);} }
+
+    .tile.green{ background:var(--green); border-color:transparent; color:white; }
+    .tile.yellow{ background:var(--yellow); border-color:transparent; color:white; }
+    .tile.gray{ background:var(--gray); border-color:transparent; color:white; }
+
+    .kbd{
+      background:rgba(18,26,43,.66);
+      border:1px solid var(--tile-border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .bank{
+      display:grid;
+      grid-template-columns:repeat(7, 1fr);
+      gap:10px;
+    }
+
+    .key{
+      height:54px;
+      border-radius:14px;
+      border:1px solid var(--tile-border);
+      background:rgba(255,255,255,0.04);
+      color:var(--text);
+      display:grid;
+      place-items:center;
+      font-size:26px;
+      cursor:pointer;
+      user-select:none;
+      position:relative;
+      transition: transform .06s ease, filter .06s ease, box-shadow .18s ease;
+      min-width:44px;
+    }
+    .key:active{ transform:scale(.98); filter:brightness(1.12); }
+    .key[aria-disabled="true"]{ opacity:.45; cursor:not-allowed; }
+
+    .key::after{
+      content:"";
+      position:absolute;
+      left:12px; right:12px;
+      bottom:8px;
+      height:4px;
+      border-radius:999px;
+      background:transparent;
+      opacity:.95;
+    }
+    .key.kg::after{ background:var(--green); }
+    .key.ky::after{ background:var(--yellow); }
+    .key.kx::after{ background:var(--gray); }
+
+    .controls{
+      display:grid;
+      grid-template-columns:1fr 1fr 1.2fr;
+      gap:10px;
+    }
+
+    .btn{
+      height:46px;
+      border-radius:14px;
+      border:1px solid var(--tile-border);
+      background:rgba(255,255,255,0.04);
+      color:var(--text);
+      font-weight:650;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .06s ease, filter .06s ease;
+      min-width:44px;
+    }
+    .btn:active{ transform:scale(.98); filter:brightness(1.1); }
+    .btn.primary{ background:var(--accent); border-color:transparent; }
+    .btn[disabled]{ opacity:.45; cursor:not-allowed; }
 
     .footer{
       display:flex;
       justify-content:space-between;
-      align-items:center;
       gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
-      color: var(--muted);
-      font-size:12px;
-      min-height:18px;
-    }
-
-    /* Welcome / Instructions page */
-    .welcome{
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:18px 14px;
-      background:#fff;
-      display:none;
-    }
-    .welcome h2{
-      margin:0;
-      font-size:18px;
-      font-weight:950;
-      letter-spacing:.2px;
-    }
-    .welcome p{
-      margin:10px 0 0 0;
-      color:var(--muted);
-      font-size:13px;
-      font-weight:800;
-      line-height:1.35;
-    }
-    .welcome .rules{
-      margin-top:12px;
-      padding:12px;
-      border:1px dashed var(--border);
-      border-radius:14px;
-      background:#fff;
-      color:var(--ink);
-      font-weight:900;
-      font-size:13px;
-    }
-    .welcome .rules div{ margin:6px 0; }
-    .welcome .actions{
-      margin-top:12px;
-      display:flex;
-      justify-content:flex-end;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    /* End Screen (Daily Complete) */
-    .endScreen{
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:18px 14px;
-      background:#fff;
-      display:none;
-      text-align:center;
-    }
-    .endTitle{
-      margin:0;
-      font-size:18px;
-      font-weight:950;
-      letter-spacing:.2px;
-    }
-    .endSub{
-      margin:8px 0 0 0;
-      color:var(--muted);
-      font-size:13px;
-      font-weight:900;
-    }
-    .endScore{
-      margin:10px 0 0 0;
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      flex-wrap:wrap;
       align-items:center;
       color:var(--muted);
       font-size:12px;
-      font-weight:900;
-    }
-    .endScore .pill{
-      border:1px solid var(--border);
-      background:#fff;
-      padding:6px 10px;
-      border-radius:999px;
-      font-weight:950;
-      color: var(--ink);
-    }
-    .endActions{
-      margin-top:12px;
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .endMiniShare{
-      margin-top:12px;
-      padding:10px;
-      border:1px solid var(--border);
-      border-radius:14px;
-      background:#fff;
-      text-align:left;
-    }
-    .endMiniShare pre{
-      margin:0;
-      white-space:pre-wrap;
-      word-break:break-word;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size:12px;
-      color: var(--ink);
+      padding:0 4px;
     }
 
-    /* Modals */
-    .overlay{
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      background:rgba(10,14,26,.85);
+      border:1px solid var(--tile-border);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      box-shadow:var(--shadow);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .14s ease, transform .14s ease;
+    }
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(-4px);
+    }
+
+    .modalBackdrop{
       position:fixed;
       inset:0;
-      background: rgba(15,23,42,.45);
+      background:rgba(0,0,0,0.55);
       display:none;
       align-items:center;
       justify-content:center;
-      padding:16px;
-      z-index:9999;
+      padding:18px;
+      backdrop-filter: blur(6px);
     }
-    .overlay.show{ display:flex; }
+    .modalBackdrop.show{ display:flex; }
 
     .modal{
-      width:min(520px, 96vw);
-      background: rgba(255,255,255,.95);
-      border:1px solid var(--border);
+      width:min(520px, 100%);
+      background:rgba(18,26,43,.92);
+      border:1px solid var(--tile-border);
       border-radius:18px;
-      box-shadow: 0 25px 80px rgba(15,23,42,.25);
+      box-shadow:var(--shadow);
       padding:14px;
-      backdrop-filter: blur(8px);
     }
-
-    .modalTop{
+    .modalHeader{
       display:flex;
       justify-content:space-between;
-      align-items:flex-start;
-      gap:10px;
-    }
-
-    .modalTitle{
-      margin:0;
-      font-size:16px;
-      font-weight:950;
-      letter-spacing:.2px;
-    }
-
-    .xbtn{
-      border:1px solid var(--border);
-      background:#fff;
-      border-radius:12px;
-      width:38px;
-      height:38px;
-      cursor:pointer;
-      font-weight:950;
-      color: var(--muted);
-    }
-    .xbtn:hover{ background:#f8fafc; }
-
-    .scoreLine{
-      margin-top:10px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
       align-items:center;
-      color: var(--muted);
-      font-size:12px;
-      font-weight:900;
+      gap:10px;
+      margin-bottom:8px;
     }
-    .scorePill{
-      border:1px solid var(--border);
-      background:#fff;
-      padding:6px 10px;
-      border-radius:999px;
-      font-weight:950;
-      color: var(--ink);
-    }
-    .tomorrow{
-      margin-top:10px;
-      font-size:13px;
-      color: var(--ink);
-      font-weight:900;
-    }
-    .tomorrow b{ color: var(--accent); }
-
+    .modalHeader strong{ font-size:14px; }
+    .modalBody{ color:var(--text); font-size:13px; }
+    .modalBody p{ margin:10px 0; color:var(--muted); }
     .modalActions{
-      margin-top:12px;
       display:flex;
-      justify-content:flex-end;
       gap:10px;
-      flex-wrap:wrap;
+      margin-top:12px;
     }
 
-    .miniShare{
+    .miniGrid{
       margin-top:10px;
-      padding:10px;
-      border:1px solid var(--border);
-      border-radius:14px;
-      background:#fff;
-    }
-    .miniShare pre{
-      margin:0;
-      white-space:pre-wrap;
-      word-break:break-word;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size:12px;
-      color: var(--ink);
-    }
-
-    /* Round Result Popup */
-    .modal.small{ width:min(420px, 96vw); }
-    .resultBadge{
-      display:inline-flex;
-      align-items:center;
+      display:grid;
+      grid-template-columns:repeat(5, 1fr);
       gap:8px;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background:#fff;
-      font-weight:950;
-      margin-top:10px;
     }
-    .resultBadge.good{
-      border-color: rgba(34,197,94,.45);
-      box-shadow: 0 0 0 3px rgba(34,197,94,.12);
-    }
-    .resultBadge.bad{
-      border-color: rgba(239,68,68,.45);
-      box-shadow: 0 0 0 3px rgba(239,68,68,.12);
-    }
-
-    @media (max-width: 480px) {
-      .wrap { width: 100vw; padding: 6px; }
-      .panel { padding: 10px; border-radius: 14px; }
-      .game { padding: 8px; }
-      .grid { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
-      button.tile { padding: 10px 6px; font-size: 13px; }
-      .title { font-size: 16px; }
-      .roundLabel { font-size: 13px; }
-      .instruction { font-size: 12px; }
+    .miniTile{
+      aspect-ratio:1/1;
+      border-radius:12px;
+      border:1px solid var(--tile-border);
+      background:var(--tile-empty);
+      display:grid;
+      place-items:center;
+      font-size:20px;
     }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="panel">
-      <header>
-        <h1 class="title">Odd One <span class="out">Out</span></h1>
-        <div class="meta">
-          <div class="chip"><span class="dot"></span><span id="dayText">Day</span></div>
-          <div class="bar"><div id="progFill"></div></div>
-        </div>
-      </header>
-
-      <!-- WELCOME / INSTRUCTIONS -->
-      <div class="welcome" id="welcomeScreen">
-        <h2>Welcome 👋</h2>
-        <p>A daily word puzzle with 3 timed rounds.</p>
-        <div class="rules">
-          <div>✅ <b>Pick the one word</b> that doesn’t belong.</div>
-          <div>⏱️ Round timers: <b>10s</b>, <b>20s</b>, <b>30s</b>.</div>
-          <div>🔒 Hit <b>Lock in</b> to submit your choice.</div>
-          <div>📌 One attempt per day — come back tomorrow for a new puzzle.</div>
-        </div>
-        <div class="actions">
-          <button class="btn ghost" id="startBtn">Start Today’s Puzzle</button>
-        </div>
+  <div class="app" role="application" aria-label="Emoji Progression">
+    <div class="topbar">
+      <button class="iconbtn" id="helpBtn" aria-label="Help">?</button>
+      <div class="title">
+        <strong>EMOJI PROGRESSION</strong>
+        <span id="subtitle">Daily Puzzle</span>
       </div>
+      <button class="iconbtn" id="statsBtn" aria-label="Stats">★</button>
+    </div>
 
-      <!-- GAME -->
-      <div class="game" id="gameScreen">
-        <div class="topline">
-          <div class="roundLeft">
-            <div class="roundLabel"><span id="roundTitle">Round 1</span></div>
-            <div class="timerWrap" aria-label="Round timer">
-              <svg class="timerSvg" viewBox="0 0 36 36" aria-hidden="true">
-                <circle class="timerBg" cx="18" cy="18" r="14"></circle>
-                <circle class="timerFg ok" id="timerFg" cx="18" cy="18" r="14"></circle>
-              </svg>
-            </div>
-          </div>
-          <div class="instruction" id="instrText"><b>Find the odd word and lock it in.</b></div>
-        </div>
+    <div class="prompt" id="promptLine">Build the progression.</div>
 
-        <div class="grid" id="grid"></div>
+    <div class="grid" id="grid" aria-label="Guesses grid"></div>
 
-        <div class="controls">
-          <div class="pickcount">
-            <span class="badge" id="pickBadge">0/1</span>
-            <span>Selected</span>
-          </div>
-          <div class="btnRow">
-            <button class="btn primary" id="lockBtn" disabled>Lock in</button>
-            <button class="btn" id="nextBtn" disabled>Next</button>
-          </div>
-        </div>
-
-        <div class="rule" id="ruleBox"></div>
+    <div class="kbd" aria-label="Keyboard">
+      <div class="bank" id="bankRow" aria-label="Emoji bank"></div>
+      <div class="controls">
+        <button class="btn" id="backBtn" aria-label="Backspace">⌫</button>
+        <button class="btn" id="clearBtn" aria-label="Clear">Clear</button>
+        <button class="btn primary" id="submitBtn" aria-label="Submit" disabled>Submit</button>
       </div>
+    </div>
 
-      <!-- DAILY COMPLETE -->
-      <div class="endScreen" id="endScreen">
-        <h2 class="endTitle">Thanks for playing!</h2>
-        <p class="endSub">Come back tomorrow for a new puzzle.</p>
+    <div class="footer">
+      <div id="streakLabel">Streak: 0</div>
+      <div id="countdownLabel">Next: --:--:--</div>
+    </div>
+  </div>
 
-        <div class="endScore">
-          <span class="pill" id="endScorePill">Score: 0/3</span>
-          <span id="endScoreNote">—</span>
-        </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-        <div class="endActions">
-          <button class="btn ghost" id="endCopyBtn">Copy Share</button>
-        </div>
-
-        <div class="endMiniShare">
-          <pre id="endMiniShareText"></pre>
-        </div>
+  <!-- Help Modal -->
+  <div class="modalBackdrop" id="helpModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Help">
+      <div class="modalHeader">
+        <strong>How to play</strong>
+        <button class="iconbtn" data-close="helpModal" aria-label="Close">✕</button>
       </div>
-
-      <div class="footer">
-        <div id="msg"></div>
-        <div class="btnRow">
-          <button class="btn ghost" id="copyBtn">Copy Share</button>
-        </div>
+      <div class="modalBody">
+        <p>Pick 5 emojis from today’s bank to match the hidden progression.</p>
+        <p><b>🟩</b> correct emoji in correct spot • <b>🟨</b> in answer but wrong spot • <b>⬛</b> not in answer</p>
+        <p>No duplicates per guess in this prototype.</p>
       </div>
     </div>
   </div>
 
-  <!-- Round Result Popup -->
-  <div class="overlay" id="resultOverlay" role="dialog" aria-modal="true" aria-label="Round result">
-    <div class="modal small">
-      <div class="modalTop">
-        <div>
-          <h2 class="modalTitle" id="resultTitle">Result</h2>
-          <div class="resultBadge" id="resultBadge">—</div>
-        </div>
-        <button class="xbtn" id="closeResult" aria-label="Close">✕</button>
+  <!-- Stats Modal -->
+  <div class="modalBackdrop" id="statsModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Stats">
+      <div class="modalHeader">
+        <strong>Stats</strong>
+        <button class="iconbtn" data-close="statsModal" aria-label="Close">✕</button>
       </div>
-
-      <div class="modalActions">
-        <button class="btn primary" id="resultContinue">Continue</button>
-      </div>
+      <div class="modalBody" id="statsBody"></div>
     </div>
   </div>
 
-  <!-- Completion Modal -->
-  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Puzzle complete">
-    <div class="modal">
-      <div class="modalTop">
-        <div>
-          <h2 class="modalTitle">All done 🎉</h2>
-          <div class="scoreLine">
-            <span class="scorePill" id="scorePill">Score: 0/3</span>
-            <span id="scoreNote">—</span>
-          </div>
+  <!-- End Modal -->
+  <div class="modalBackdrop" id="endModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Result">
+      <div class="modalHeader">
+        <strong id="endTitle">Result</strong>
+        <button class="iconbtn" data-close="endModal" aria-label="Close">✕</button>
+      </div>
+      <div class="modalBody">
+        <div id="endSub" style="color:var(--muted)"></div>
+        <div class="miniGrid" id="answerMini"></div>
+        <div class="modalActions">
+          <button class="btn primary" id="shareBtn">Share</button>
+          <button class="btn" data-close="endModal">Close</button>
         </div>
-        <button class="xbtn" id="closeModal" aria-label="Close">✕</button>
-      </div>
-
-      <div class="tomorrow">Come back <b>tomorrow</b> for a new puzzle.</div>
-
-      <div class="miniShare">
-        <pre id="miniShareText"></pre>
-      </div>
-
-      <div class="modalActions">
-        <button class="btn ghost" id="modalCopy">Copy Share</button>
-        <button class="btn primary" id="modalOk">OK</button>
+        <p style="margin-top:10px;">Thanks for playing — come back tomorrow.</p>
       </div>
     </div>
   </div>
 
 <script>
 (() => {
-  // Timers per round (seconds): 10 / 20 / 30
-  const ROUND_SECONDS = [10, 20, 30];
-
-  // 5 days of puzzles (each day: 3 / 6 / 9 options, progressively harder)
-  const DAYS = [
-    {
-      id: 1,
-      rounds: [
-        { options:["RADAR","LEVEL","LEVER"], oddIndex:2, rule:"Two are palindromes." },
-        { options:["XENON","ARGON","NEON","RADON","KRYPTON","SODIUM"], oddIndex:5, rule:"Most are noble gases." },
-        { options:["SUBTLE","ISLAND","KNEAD","WRIST","PSALM","DOUBT","GNOME","HOUR","ROBOT"], oddIndex:8, rule:"Most contain a silent letter." }
-      ]
-    },
-    {
-      id: 2,
-      rounds: [
-        { options:["HOMER","ODYSSEY","EINSTEIN"], oddIndex:2, rule:"Two are epic/literary references." },
-        { options:["FJORD","ATOLL","DELTA","CANYON","PLATEAU","QUASAR"], oddIndex:5, rule:"Most are landforms." },
-        { options:["METER","LITER","GRAM","KELVIN","SECOND","AMPERE","MOLE","CANDELA","NEWTON"], oddIndex:8, rule:"Most are SI base units." }
-      ]
-    },
-    {
-      id: 3,
-      rounds: [
-        { options:["CEDAR","SPRUCE","CITRUS"], oddIndex:2, rule:"Two are conifers." },
-        { options:["OBSIDIAN","PUMICE","BASALT","GRANITE","SHALE","SAPPHIRE"], oddIndex:5, rule:"Most are common rocks." },
-        { options:["LYNX","IBEX","OKAPI","TAPIR","SLOTH","LEMUR","BISON","CAMEL","DRAGON"], oddIndex:8, rule:"Most are real animals." }
-      ]
-    },
-    {
-      id: 4,
-      rounds: [
-        { options:["OPAL","AMBER","OREGANO"], oddIndex:2, rule:"Two are gemstones." },
-        { options:["SONNET","HAIKU","ODE","LIMERICK","EPIC","RECEIPT"], oddIndex:5, rule:"Most are poetry forms." },
-        { options:["EULER","GAUSS","NOETHER","RAMANUJAN","TESLA","CURIE","DARWIN","PASTEUR","ODIN"], oddIndex:8, rule:"Most are real scientists/mathematicians." }
-      ]
-    },
-    {
-      id: 5,
-      rounds: [
-        { options:["MORSE","BRAILLE","MOSAIC"], oddIndex:2, rule:"Two are communication/writing systems." },
-        { options:["AORTA","ULNA","TIBIA","FEMUR","ATLAS","AMETHYST"], oddIndex:5, rule:"Most are bones/anatomy terms." },
-        { options:["AUGMENT","ELEGY","EPHEMERAL","SERENDIPITY","LABYRINTH","MELLIFLUOUS","OBFUSCATE","PERNICIOUS","BANANA"], oddIndex:8, rule:"Most are advanced vocabulary words." }
-      ]
-    }
+  // ---------- Puzzle pack (curated prototypes; add more easily) ----------
+  const PACK = [
+    { bank: ["🌱","🌿","🌳","🍎","🍂","🌾","🍃"], answer: ["🌱","🌿","🌳","🍎","🍂"] },
+    { bank: ["🧊","💧","☁️","🌧️","🌈","🔥","❄️"], answer: ["🧊","💧","☁️","🌧️","🌈"] },
+    { bank: ["🪨","⛏️","🧱","🏠","🏙️","🏰","🌋"], answer: ["🪨","⛏️","🧱","🏠","🏙️"] },
+    { bank: ["🥚","🐣","🐥","🐔","🍗","🦊","🌽"], answer: ["🥚","🐣","🐥","🐔","🍗"] },
+    { bank: ["🌑","🌒","🌓","🌔","🌕","⭐","☄️"], answer: ["🌑","🌒","🌓","🌔","🌕"] },
+    { bank: ["📎","📄","📚","🎓","💼","🧨","🖊️"], answer: ["📎","📄","📚","🎓","💼"] },
+    { bank: ["🥉","🥈","🥇","🏆","👑","🧸","🎯"], answer: ["🥉","🥈","🥇","🏆","👑"] },
+    { bank: ["🪵","🪚","🔨","🪑","🏠","🧯","🧲"], answer: ["🪵","🪚","🔨","🪑","🏠"] },
   ];
 
-  // Day selection (cycles through DAYS)
-  const start = new Date(Date.UTC(2026, 0, 1));
-  const now = new Date();
-  const utcMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  const dayNumber = Math.floor((utcMidnight - start) / 86400000) + 1;
-  const dayPuzzle = DAYS[(dayNumber - 1) % DAYS.length];
-  const storageKey = `ooo_daily_${dayNumber}`;
+  // ---------- Deterministic daily selection ----------
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function todayIdLocal(){
+    const d = new Date();
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  }
+  // Simple seeded hash -> index
+  function hashStr(s){
+    let h = 2166136261;
+    for (let i=0;i<s.length;i++){
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+  function pickDailyPuzzle(puzzleId){
+    const salt = "EMOJI_PROG_V1_SALT";
+    const h = hashStr(puzzleId + "|" + salt);
+    const idx = h % PACK.length;
+    return { id: puzzleId, number: (h % 999) + 1, ...PACK[idx] };
+  }
 
-  // Elements
-  const dayText = document.getElementById("dayText");
-  const progFill = document.getElementById("progFill");
-  const roundTitle = document.getElementById("roundTitle");
-  const gridEl = document.getElementById("grid");
-  const pickBadge = document.getElementById("pickBadge");
-  const lockBtn = document.getElementById("lockBtn");
-  const nextBtn = document.getElementById("nextBtn");
-  const ruleBox = document.getElementById("ruleBox");
-  const msgEl = document.getElementById("msg");
-  const copyBtn = document.getElementById("copyBtn");
-  const endCopyBtn = document.getElementById("endCopyBtn");
-  const timerFg = document.getElementById("timerFg");
+  // ---------- Wordle-accurate feedback (count-safe) ----------
+  function computeFeedback(answer, guess){
+    const fb = Array(5).fill("GRAY");
+    const used = Array(5).fill(false);
 
-  const welcomeScreen = document.getElementById("welcomeScreen");
-  const startBtn = document.getElementById("startBtn");
-  const gameScreen = document.getElementById("gameScreen");
-  const endScreen = document.getElementById("endScreen");
-  const endScorePill = document.getElementById("endScorePill");
-  const endScoreNote = document.getElementById("endScoreNote");
-  const endMiniShareText = document.getElementById("endMiniShareText");
+    // Greens
+    for (let i=0;i<5;i++){
+      if (guess[i] === answer[i]){
+        fb[i] = "GREEN";
+        used[i] = true;
+      }
+    }
+    // Yellows
+    for (let i=0;i<5;i++){
+      if (fb[i] === "GREEN") continue;
+      const g = guess[i];
+      let found = -1;
+      for (let j=0;j<5;j++){
+        if (used[j]) continue;
+        if (answer[j] === g){ found = j; break; }
+      }
+      if (found !== -1){
+        fb[i] = "YELLOW";
+        used[found] = true;
+      }
+    }
+    return fb;
+  }
 
-  const overlay = document.getElementById("overlay");
-  const closeModal = document.getElementById("closeModal");
-  const modalOk = document.getElementById("modalOk");
-  const modalCopy = document.getElementById("modalCopy");
-  const scorePill = document.getElementById("scorePill");
-  const scoreNote = document.getElementById("scoreNote");
-  const miniShareText = document.getElementById("miniShareText");
+  function fbToSquaresRow(fb){
+    return fb.map(t => t==="GREEN" ? "🟩" : t==="YELLOW" ? "🟨" : "⬛").join("");
+  }
 
-  const resultOverlay = document.getElementById("resultOverlay");
-  const closeResult = document.getElementById("closeResult");
-  const resultContinue = document.getElementById("resultContinue");
-  const resultTitle = document.getElementById("resultTitle");
-  const resultBadge = document.getElementById("resultBadge");
+  // ---------- Storage ----------
+  const LS_KEY = "emoji_progression_state_v0";
+  function safeParse(json){
+    try { return JSON.parse(json); } catch { return null; }
+  }
 
-  dayText.textContent = `Day #${dayNumber}`;
+  function defaultState(puzzleId){
+    return {
+      puzzleId,
+      attempts: [],           // { guess:[5], feedback:[5] }
+      currentGuess: [],
+      status: "IN_PROGRESS", // WON | LOST
+      stats: {
+        played: 0,
+        wins: 0,
+        currentStreak: 0,
+        maxStreak: 0,
+        guessDist: [0,0,0,0,0,0],
+        lastPlayedPuzzleId: null,
+        lastWinPuzzleId: null
+      }
+    };
+  }
 
-  // State persisted per day
-  let state = JSON.parse(localStorage.getItem(storageKey)) || {
-    roundIndex: 0,
-    selected: [null,null,null],
-    locked: [false,false,false],
-    results: [null,null,null],
-    shownCompleteModal: false,
-    timerStartedAt: [null,null,null],
-    startedToday: false
+  function loadState(todayId){
+    const raw = localStorage.getItem(LS_KEY);
+    const parsed = raw ? safeParse(raw) : null;
+    if (!parsed || typeof parsed !== "object") return defaultState(todayId);
+
+    // If puzzle day changed, carry stats but reset game
+    if (parsed.puzzleId !== todayId){
+      const next = defaultState(todayId);
+      if (parsed.stats) next.stats = parsed.stats;
+      return next;
+    }
+    // basic shape checks
+    if (!Array.isArray(parsed.attempts)) parsed.attempts = [];
+    if (!Array.isArray(parsed.currentGuess)) parsed.currentGuess = [];
+    if (!parsed.stats || !Array.isArray(parsed.stats.guessDist)) parsed.stats = defaultState(todayId).stats;
+    return parsed;
+  }
+
+  function saveState(state){
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+  }
+
+  // ---------- UI refs ----------
+  const els = {
+    subtitle: document.getElementById("subtitle"),
+    grid: document.getElementById("grid"),
+    bankRow: document.getElementById("bankRow"),
+    backBtn: document.getElementById("backBtn"),
+    clearBtn: document.getElementById("clearBtn"),
+    submitBtn: document.getElementById("submitBtn"),
+    toast: document.getElementById("toast"),
+    streakLabel: document.getElementById("streakLabel"),
+    countdownLabel: document.getElementById("countdownLabel"),
+    helpBtn: document.getElementById("helpBtn"),
+    statsBtn: document.getElementById("statsBtn"),
+    helpModal: document.getElementById("helpModal"),
+    statsModal: document.getElementById("statsModal"),
+    statsBody: document.getElementById("statsBody"),
+    endModal: document.getElementById("endModal"),
+    endTitle: document.getElementById("endTitle"),
+    endSub: document.getElementById("endSub"),
+    answerMini: document.getElementById("answerMini"),
+    shareBtn: document.getElementById("shareBtn"),
   };
 
-  function save(){ localStorage.setItem(storageKey, JSON.stringify(state)); }
+  // ---------- App state ----------
+  const todayId = todayIdLocal();
+  const puzzle = pickDailyPuzzle(todayId);
+  let state = loadState(todayId);
 
-  // Helpers
-  function emoji(r){ return r === true ? "🟩" : "🟥"; }
-  function score(){ return state.results.filter(v => v === true).length; }
-  function scoreFlavor(s){
-    return s === 3 ? "Perfect!" :
-           s === 2 ? "Nice work." :
-           s === 1 ? "You got one." :
-           "Tough one today.";
-  }
-  function buildShare(){
-    return `Odd One Out #${dayNumber}
-${emoji(state.results[0])} Round 1
-${emoji(state.results[1])} Round 2
-${emoji(state.results[2])} Round 3`;
+  // ---------- Helpers ----------
+  let toastTimer = null;
+  function toast(msg){
+    clearTimeout(toastTimer);
+    els.toast.textContent = msg;
+    els.toast.classList.add("show");
+    toastTimer = setTimeout(() => els.toast.classList.remove("show"), 1200);
   }
 
-  // Grid columns: 3 columns always (3/6/9 looks clean)
-  function colsFor(){ return 3; }
-
-  // Timer ring logic
-  let tickHandle = null;
-
-  function ringSetup() {
-    const C = 2 * Math.PI * 14;
-    timerFg.style.strokeDasharray = `${C}`;
-    timerFg.style.strokeDashoffset = `0`;
-  }
-  function stopTick(){
-    if(tickHandle){ clearInterval(tickHandle); tickHandle = null; }
-  }
-  function roundTotalMs(ri){ return ROUND_SECONDS[ri] * 1000; }
-  function getRemainingMs(ri){
-    const startAt = state.timerStartedAt[ri];
-    const total = roundTotalMs(ri);
-    if(!startAt) return total;
-    const elapsed = Date.now() - startAt;
-    return Math.max(0, total - elapsed);
-  }
-  function setRingFromRemaining(ri){
-    const total = roundTotalMs(ri);
-    const rem = getRemainingMs(ri);
-    const frac = total === 0 ? 0 : (rem / total);
-
-    const C = 2 * Math.PI * 14;
-    timerFg.style.strokeDasharray = `${C}`;
-    timerFg.style.strokeDashoffset = `${C * (1 - frac)}`;
-
-    if(frac <= 0.25){
-      timerFg.classList.remove("ok");
-      timerFg.classList.add("warn");
-    } else {
-      timerFg.classList.remove("warn");
-      timerFg.classList.add("ok");
-    }
+  function bestTile(a,b){
+    const rank = { GRAY:1, YELLOW:2, GREEN:3 };
+    return rank[b] > rank[a] ? b : a;
   }
 
-  function ensureTimerRunning(){
-    const ri = state.roundIndex;
-
-    if(!state.startedToday){ stopTick(); return; }
-    if(state.locked[ri]) { stopTick(); return; }
-
-    if(!state.timerStartedAt[ri]){
-      state.timerStartedAt[ri] = Date.now();
-      save();
-    }
-
-    stopTick();
-    tickHandle = setInterval(() => {
-      if(resultOverlay.classList.contains("show") || overlay.classList.contains("show")) return;
-
-      const rem = getRemainingMs(ri);
-      setRingFromRemaining(ri);
-
-      if(rem <= 0){
-        stopTick();
-        timeUpAutoLock();
+  function getKeyStatuses(){
+    const map = new Map();
+    for (const e of puzzle.bank) map.set(e, ""); // none
+    for (const att of state.attempts){
+      for (let i=0;i<5;i++){
+        const e = att.guess[i];
+        const t = att.feedback[i];
+        if (!map.has(e)) continue;
+        const prev = map.get(e) || "";
+        if (!prev) map.set(e, t);
+        else map.set(e, bestTile(prev, t));
       }
-    }, 100);
+    }
+    return map;
   }
 
-  function timeUpAutoLock(){
-    const ri = state.roundIndex;
-    if(state.locked[ri]) return;
-
-    state.results[ri] = false;
-    state.locked[ri] = true;
-    save();
-    render();
-
-    resultTitle.textContent = `Round ${ri + 1}`;
-    resultBadge.className = "resultBadge bad";
-    resultBadge.textContent = "⏱️ Time’s up";
-    resultOverlay.classList.add("show");
+  function canSubmit(){
+    return state.status === "IN_PROGRESS" && state.currentGuess.length === 5;
   }
 
-  // Modals
-  function showCompletionModal(){
-    const s = score();
-    scorePill.textContent = `Score: ${s}/3`;
-    scoreNote.textContent = scoreFlavor(s);
-    miniShareText.textContent = buildShare();
-    overlay.classList.add("show");
-    state.shownCompleteModal = true;
-    save();
-  }
-  function hideCompletionModal(){ overlay.classList.remove("show"); }
-
-  function showResultModal(isCorrect){
-    resultTitle.textContent = `Round ${state.roundIndex + 1}`;
-    resultBadge.className = "resultBadge " + (isCorrect ? "good" : "bad");
-    resultBadge.textContent = isCorrect ? "✅ Correct" : "❌ Incorrect";
-    resultOverlay.classList.add("show");
-  }
-  function hideResultModal(){ resultOverlay.classList.remove("show"); }
-
-  // Render screens
-  function renderWelcome(){
-    stopTick();
-    welcomeScreen.style.display = "block";
-    gameScreen.style.display = "none";
-    endScreen.style.display = "none";
-    msgEl.textContent = "Ready for today’s puzzle?";
-    progFill.style.width = "0%";
-    ringSetup();
-    setRingFromRemaining(state.roundIndex);
+  function hasDuplicates(arr){
+    return new Set(arr).size !== arr.length;
   }
 
-  function renderEndScreen(){
-    stopTick();
-    welcomeScreen.style.display = "none";
-    gameScreen.style.display = "none";
-    endScreen.style.display = "block";
+  // ---------- Rendering ----------
+  function render(){
+    els.subtitle.textContent = `#${String(puzzle.number).padStart(3,"0")} • ${puzzle.id}`;
+    els.streakLabel.textContent = `Streak: ${state.stats.currentStreak}`;
 
-    const s = score();
-    endScorePill.textContent = `Score: ${s}/3`;
-    endScoreNote.textContent = scoreFlavor(s);
-    endMiniShareText.textContent = buildShare();
-
-    msgEl.textContent = "You're done for today.";
-    progFill.style.width = "100%";
-  }
-
-  function renderGameScreen(){
-    const ri = state.roundIndex;
-    const r = dayPuzzle.rounds[ri];
-    const n = r.options.length;
-
-    welcomeScreen.style.display = "none";
-    gameScreen.style.display = "block";
-    endScreen.style.display = "none";
-
-    roundTitle.textContent = `Round ${ri + 1}`;
-    progFill.style.width = `${(state.locked.filter(Boolean).length / 3) * 100}%`;
-
-    gridEl.style.gridTemplateColumns = `repeat(${colsFor(n)}, 1fr)`;
-    gridEl.innerHTML = "";
-
-    r.options.forEach((w,i)=>{
-      const b = document.createElement("button");
-      b.className = "tile";
-      b.textContent = w;
-      b.disabled = state.locked[ri];
-
-      if(!state.locked[ri] && state.selected[ri] === i) b.classList.add("selected");
-
-      if(state.locked[ri]){
-        if(i === state.selected[ri]) b.classList.add(i === r.oddIndex ? "correct" : "wrong");
-        if(state.selected[ri] !== r.oddIndex && i === r.oddIndex) b.classList.add("correct");
+    // Grid
+    els.grid.innerHTML = "";
+    for (let r=0;r<6;r++){
+      const row = document.createElement("div");
+      row.className = "row";
+      const attempt = state.attempts[r] || null;
+      for (let c=0;c<5;c++){
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        let emoji = "";
+        if (attempt){
+          emoji = attempt.guess[c] || "";
+          const fb = attempt.feedback[c];
+          if (fb === "GREEN") tile.classList.add("green");
+          else if (fb === "YELLOW") tile.classList.add("yellow");
+          else tile.classList.add("gray");
+        } else if (r === state.attempts.length){
+          emoji = state.currentGuess[c] || "";
+        }
+        tile.textContent = emoji;
+        row.appendChild(tile);
       }
+      els.grid.appendChild(row);
+    }
 
-      b.onclick = () => {
-        if(state.locked[ri]) return;
-        state.selected[ri] = i;
-        save();
-        render();
-      };
+    // Bank keys
+    const keyStatus = getKeyStatuses();
+    els.bankRow.innerHTML = "";
+    puzzle.bank.forEach((e) => {
+      const k = document.createElement("button");
+      k.className = "key";
+      k.setAttribute("type","button");
+      k.setAttribute("aria-label", `Emoji ${e}`);
+      k.textContent = e;
 
-      gridEl.appendChild(b);
+      const st = keyStatus.get(e);
+      if (st === "GREEN") k.classList.add("kg");
+      else if (st === "YELLOW") k.classList.add("ky");
+      else if (st === "GRAY") k.classList.add("kx");
+
+      // disable if already selected or game ended
+      const disabled = state.status !== "IN_PROGRESS" || state.currentGuess.includes(e);
+      if (disabled) k.setAttribute("aria-disabled","true");
+
+      k.addEventListener("click", () => onEmoji(e));
+      els.bankRow.appendChild(k);
     });
 
-    pickBadge.textContent = `${state.selected[ri] == null ? 0 : 1}/1`;
-    lockBtn.disabled = state.locked[ri] || state.selected[ri] == null;
-    nextBtn.disabled = !state.locked[ri] || ri === 2;
-
-    if(state.locked[ri]){
-      ruleBox.style.display = "block";
-      ruleBox.innerHTML = `<strong>Rule:</strong> ${r.rule}`;
-    } else {
-      ruleBox.style.display = "none";
-      ruleBox.innerHTML = "";
-    }
-
-    msgEl.textContent = "Choose the odd one out.";
-
-    ringSetup();
-    setRingFromRemaining(ri);
-    ensureTimerRunning();
+    els.submitBtn.disabled = !canSubmit();
   }
 
-  function render(){
-    // If completed → end screen
-    if(state.locked.every(Boolean)){
-      renderEndScreen();
-      if(!state.shownCompleteModal) showCompletionModal();
-      return;
-    }
-    // If not started today → welcome screen
-    if(!state.startedToday){
-      renderWelcome();
-      return;
-    }
-    // Otherwise → game
-    renderGameScreen();
+  function openModal(el){
+    el.classList.add("show");
+    el.setAttribute("aria-hidden","false");
+  }
+  function closeModal(el){
+    el.classList.remove("show");
+    el.setAttribute("aria-hidden","true");
   }
 
-  // Actions
-  startBtn.onclick = () => {
-    state.startedToday = true;
-    // Start round 1 timer only when they press Start
-    if(!state.timerStartedAt[0]) state.timerStartedAt[0] = Date.now();
-    save();
+  function renderStats(){
+    const s = state.stats;
+    const played = s.played || 0;
+    const wins = s.wins || 0;
+    const winPct = played ? Math.round((wins/played)*100) : 0;
+
+    const dist = (s.guessDist || [0,0,0,0,0,0])
+      .map((n,i) => `<div style="display:flex;align-items:center;gap:10px;margin:6px 0;">
+          <div style="width:18px;color:var(--muted)">${i+1}</div>
+          <div style="flex:1;background:rgba(255,255,255,0.07);border:1px solid var(--tile-border);border-radius:999px;overflow:hidden;">
+            <div style="height:10px;width:${played? Math.max(6, (n/Math.max(1,Math.max(...s.guessDist)))*100):0}%;background:var(--accent)"></div>
+          </div>
+          <div style="width:24px;text-align:right;color:var(--muted)">${n}</div>
+        </div>`).join("");
+
+    els.statsBody.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px;">
+        <div style="background:rgba(255,255,255,0.04);border:1px solid var(--tile-border);border-radius:14px;padding:10px;text-align:center;">
+          <div style="font-weight:800;font-size:16px">${played}</div>
+          <div style="color:var(--muted);font-size:12px">Played</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid var(--tile-border);border-radius:14px;padding:10px;text-align:center;">
+          <div style="font-weight:800;font-size:16px">${winPct}</div>
+          <div style="color:var(--muted);font-size:12px">Win %</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid var(--tile-border);border-radius:14px;padding:10px;text-align:center;">
+          <div style="font-weight:800;font-size:16px">${s.currentStreak||0}</div>
+          <div style="color:var(--muted);font-size:12px">Streak</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid var(--tile-border);border-radius:14px;padding:10px;text-align:center;">
+          <div style="font-weight:800;font-size:16px">${s.maxStreak||0}</div>
+          <div style="color:var(--muted);font-size:12px">Max</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div style="font-weight:800;margin-bottom:6px;">Guess distribution</div>
+        ${dist}
+      </div>
+    `;
+  }
+
+  // ---------- Game actions ----------
+  function onEmoji(e){
+    if (state.status !== "IN_PROGRESS") return;
+    if (state.currentGuess.length >= 5) return;
+    if (state.currentGuess.includes(e)) return;
+    state.currentGuess.push(e);
+    saveState(state);
     render();
-  };
 
-  lockBtn.onclick = () => {
-    const ri = state.roundIndex;
-    const r = dayPuzzle.rounds[ri];
-    const s = state.selected[ri];
-    if(s == null) return;
-
-    const correct = (s === r.oddIndex);
-    state.results[ri] = correct;
-    state.locked[ri] = true;
-    save();
-    render();
-    showResultModal(correct);
-  };
-
-  nextBtn.onclick = () => {
-    if(state.roundIndex < 2){
-      state.roundIndex++;
-      save();
-      render();
-    }
-  };
-
-  async function doCopy(){
-    const txt = buildShare();
-    try{
-      await navigator.clipboard.writeText(txt);
-      msgEl.textContent = "Copied share text!";
-    } catch {
-      msgEl.textContent = "Clipboard blocked—copy manually.";
+    // pop animation on current row tiles
+    const rowIndex = state.attempts.length;
+    const row = els.grid.children[rowIndex];
+    if (row){
+      const tile = row.children[state.currentGuess.length-1];
+      if (tile){
+        tile.classList.add("pop");
+        setTimeout(()=>tile.classList.remove("pop"), 140);
+      }
     }
   }
-  copyBtn.onclick = doCopy;
-  endCopyBtn.onclick = doCopy;
 
-  closeModal.onclick = hideCompletionModal;
-  modalOk.onclick = hideCompletionModal;
-  overlay.addEventListener("click", (e) => { if(e.target === overlay) hideCompletionModal(); });
-  modalCopy.onclick = async () => {
-    const txt = buildShare();
-    try{ await navigator.clipboard.writeText(txt); scoreNote.textContent = "Copied!"; }
-    catch { scoreNote.textContent = "Copy manually below."; }
-  };
+  function onBack(){
+    if (state.status !== "IN_PROGRESS") return;
+    state.currentGuess.pop();
+    saveState(state);
+    render();
+  }
 
-  closeResult.onclick = () => { hideResultModal(); render(); };
-  resultContinue.onclick = () => { hideResultModal(); render(); };
-  resultOverlay.addEventListener("click", (e) => {
-    if(e.target === resultOverlay){ hideResultModal(); render(); }
-  });
+  function onClear(){
+    if (state.status !== "IN_PROGRESS") return;
+    state.currentGuess = [];
+    saveState(state);
+    render();
+  }
 
-  window.addEventListener("keydown", (e) => {
-    if(e.key !== "Escape") return;
-    hideResultModal();
-    hideCompletionModal();
-  });
+  function endGame(status){
+    state.status = status;
 
-  render();
-})();
-</script>
-</body>
-</html>
+    // Stats update only once per puzzle end
+    const s = state.stats;
+    const alreadyCounted = (s.lastPlayedPuzzleId === puzzle.id);
+    if (!alreadyCounted){
+      s.played = (s.played||0) + 1;
+      s.lastPlayedPuzzleId = puzzle.id;
+
+      if (status === "WON"){
+        s.wins = (s.wins||0) + 1;
+
+        // streak logic (simple: if last win was yesterday, continue)
+        const d = new Date(puzzle.id + "T00:00:00");
+        const y = new Date(d);
+        y.setDate(d.getDate()-1);
+        const yesterdayId = `${y.getFullYear()}-${pad2(y.getMonth()+1)}-${pad2(y.getDate())}`;
+
+        if (s.lastWinPuzzleId === yesterdayId) s.currentStreak = (s.currentStreak||0) + 1;
+        else s.currentStreak = 1;
+
+        s.maxStreak = Math.max(s.maxStreak||0, s.currentStreak||0);
+
+        const attemptsUsed = state.attempts.len
